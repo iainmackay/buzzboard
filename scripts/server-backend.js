@@ -1,6 +1,8 @@
 const path = require("path");
 
 const config = require("./config/config");
+const URLPrefix = config.frontend.URLPrefix;
+
 const WhiteboardServerSideInfo = require("./WhiteboardServerSideInfo");
 
 function startBackendServer(port) {
@@ -18,17 +20,17 @@ function startBackendServer(port) {
     var s_whiteboard = require("./s_whiteboard.js");
 
     var app = express();
-    app.use(express.static(path.join(__dirname, "..", "dist")));
-    app.use("/uploads", express.static(path.join(__dirname, "..", "public", "uploads")));
+    app.use(URLPrefix, express.static(path.join(__dirname, "..", "dist")));
+    app.use(URLPrefix + "/uploads", express.static(path.join(__dirname, "..", "public", "uploads")));
     var server = require("http").Server(app);
     server.listen(port);
-    var io = require("socket.io")(server, { path: "/ws-api" });
+    var io = require("socket.io")(server, { path: URLPrefix + "/ws-api" });
     console.log("Webserver & socketserver running on port:" + port);
 
     const { accessToken, enableWebdav } = config.backend;
     const { imageDownloadFormat } = config.frontend;
 
-    app.get("/api/loadwhiteboard", function (req, res) {
+    app.get(URLPrefix + "/api/loadwhiteboard", function (req, res) {
         var wid = req["query"]["wid"];
         var at = req["query"]["at"]; //accesstoken
         if (accessToken === "" || accessToken == at) {
@@ -41,7 +43,7 @@ function startBackendServer(port) {
         }
     });
 
-    app.post("/api/upload", function (req, res) {
+    app.post(URLPrefix + "/api/upload", function (req, res) {
         //File upload
         var form = new formidable.IncomingForm(); //Receive form
         var formData = {

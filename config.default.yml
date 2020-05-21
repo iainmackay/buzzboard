@@ -11,6 +11,9 @@ backend:
     # Whiteboard information broadcasting frequency (in Hz i.e. /s) -- number
     # => diminishing this will result in more latency
     whiteboardInfoBroadcastFreq: 1
+    
+  # Used in dev mode
+  port: 3000
 
 # Frontend configuration
 frontend:
@@ -46,3 +49,9 @@ frontend:
       - fromUserCount: 10
         minDistDelta: 5
         maxFreq: 10
+
+  # Path to access the blackboard
+  URLPrefix: "/buzzboard"
+
+  # Port to serve the blackboard
+  port: 8080

@@ -4,7 +4,7 @@ var savedBoards = {};
 var savedUndos = {};
 module.exports = {
     handleEventsAndData: function (content) {
-        var tool = content["t"]; //Tool witch is used
+        var tool = content["t"]; //Tool used
         var wid = content["wid"]; //whiteboard ID
         var username = content["username"];
         if (tool === "clear") {

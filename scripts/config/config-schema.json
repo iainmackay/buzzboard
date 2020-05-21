@@ -5,7 +5,7 @@
   "properties": {
     "backend": {
       "type": "object",
-      "required": ["accessToken", "performance", "enableWebdav"],
+      "required": ["accessToken", "performance", "enableWebdav", "port"],
       "additionalProperties": false,
       "properties": {
         "accessToken": {
@@ -24,13 +24,22 @@
               "minimum": 0
             }
           }
-        }
+        },
+		"port": {
+			"type": "number"
+		}
       }
     },
     "frontend": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["onWhiteboardLoad", "showSmallestScreenIndicator", "performance"],
+      "required": [
+		"onWhiteboardLoad",
+		"showSmallestScreenIndicator",
+		"performance",
+		"URLPrefix",
+		"port"
+	  ],
       "properties": {
         "onWhiteboardLoad": {
           "type": "object",
@@ -84,7 +93,13 @@
               "minimum": 0
             }
           }
-        }
+        },
+		"URLPrefix": {
+			"type": "string"
+		},
+		"port": {
+			"type": "number"
+		}
       }
     }
   },
