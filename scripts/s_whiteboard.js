@@ -3,6 +3,7 @@
 var savedBoards = {};
 var savedUndos = {};
 module.exports = {
+	// Not verifying user entitlement to post content presently
     handleEventsAndData: function (content) {
         var tool = content["t"]; //Tool used
         var wid = content["wid"]; //whiteboard ID

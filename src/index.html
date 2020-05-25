@@ -12,7 +12,7 @@
 
         <!---Toolbar -!-->
         <div id="toolbar" style="position: absolute; top: 10px; left: 10px;">
-            <div class="btn-group">
+            <div class="btn-group lockGroup">
                 <button
                     id="whiteboardLockBtn"
                     style="background-color: orange;"
@@ -47,7 +47,12 @@
             </div>
 
             <div class="btn-group whiteboard-edit-group">
-                <button tool="mouse" title="Take the mouse" type="button" class="whiteboard-tool">
+                <button
+					tool="mouse"
+					title="Take the mouse"
+					type="button"
+					class="whiteboard-tool mouse-tool"
+				>
                     <i class="fa fa-mouse-pointer"></i>
                 </button>
                 <button
@@ -55,7 +60,7 @@
                     tool="recSelect"
                     title="Select an area"
                     type="button"
-                    class="whiteboard-tool"
+                    class="whiteboard-tool select-tool"
                 >
                     <img src="./images/dottedRec.png" />
                 </button>
@@ -85,7 +90,9 @@
                 <button tool="text" title="write text" type="button" class="whiteboard-tool">
                     <i class="fas fa-font"></i>
                 </button>
-                <button tool="eraser" title="take the eraser" type="button" class="whiteboard-tool">
+                <button tool="eraser" title="take the eraser" type="button"
+					class="whiteboard-tool eraser-tool"
+				>
                     <i class="fa fa-eraser"></i>
                 </button>
             </div>
