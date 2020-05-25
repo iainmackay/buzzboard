@@ -349,14 +349,15 @@ const whiteboard = {
                     _this.startCoords.x < currentPos.x ? _this.startCoords.x : currentPos.x;
                 const top = _this.startCoords.y < currentPos.y ? _this.startCoords.y : currentPos.y;
                 _this.mouseOverlay.css({ cursor: "default" });
+				console.log ("Preparing drag rectangle", width, height, left, top, );
                 const imgDiv = $(
-                    ```<div class="dragMe" style="position:absolute; left: ${left}px; top: ${top}px; width: ${width}px; border: 2px dotted gray; overflow: hidden; height: ${height}px;" cursor:move;">
+                    `<div class="dragMe" style="position:absolute; left: ${left}px; top: ${top}px; width: ${width}px; border: 2px dotted gray; overflow: hidden; height: ${height}px;" cursor:move;">
                     <canvas style="cursor:move; position:absolute; top:0px; left:0px;" width="${width}" height="${height}"/>
                     <div style="position:absolute; right:5px; top:3px;">
                     <button draw="1" style="margin: 0px 0px; background: #03a9f4; padding: 5px; margin-top: 3px; color: white;" class="addToCanvasBtn btn btn-default">Drop</button>
                     <button style="margin: 0px 0px; background: #03a9f4; padding: 5px; margin-top: 3px; color: white;" class="xCanvasBtn btn btn-default">x</button>
                     </div>
-                    </div>```
+                    </div>`
                 );
                 const dragCanvas = $(imgDiv).find("canvas");
                 const dragOutOverlay = $(

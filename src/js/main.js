@@ -13,6 +13,7 @@ import ConfigService from "./services/ConfigService";
 
 let whiteboardId = getQueryVariable("whiteboardid");
 const randomid = getQueryVariable("randomid");
+const invitationColor = getQueryVariable("color");
 if (randomid && !whiteboardId) {
     //set random whiteboard on empty whiteboardid
     whiteboardId = Array(2)
@@ -25,7 +26,8 @@ if (randomid && !whiteboardId) {
 }
 
 whiteboardId = whiteboardId || "myNewWhiteboard";
-whiteboardId = unescape(encodeURIComponent(whiteboardId)).replace(/[^a-zA-Z0-9 ]/g, "");
+// Not sure about this - i8n? semantic delimiters like . or _?
+//whiteboardId = unescape(encodeURIComponent(whiteboardId)).replace(/[^a-zA-Z0-9 ]/g, "");
 const myUsername = getQueryVariable("username") || "unknown" + (Math.random() + "").substring(2, 6);
 const accessToken = getQueryVariable("accesstoken") || "";
 
@@ -46,7 +48,7 @@ function main() {
 
         signaling_socket.on("whiteboardConfig", (serverResponse) => {
             ConfigService.initFromServer(serverResponse);
-            // Inti whiteboard only when we have the config from the server
+            // Init whiteboard only when we have the config from the server
             initWhiteboard();
         });
 
@@ -283,7 +285,7 @@ function initWhiteboard() {
             showBasicAlert("Please drag the image into the browser.");
         });
 
-        // save image as imgae
+        // save image as image
         $("#saveAsImageBtn").click(function () {
             whiteboard.getImageDataBase64(ConfigService.imageDownloadFormat, function (imgData) {
                 var w = window.open("about:blank"); //Firefox will not allow downloads without extra window
@@ -642,11 +644,12 @@ function initWhiteboard() {
 
         new Picker({
             parent: $("#whiteboardColorpicker")[0],
-            color: "#000000",
+            color: invitationColor,
             onChange: function (color) {
                 whiteboard.setDrawColor(color.rgbaString);
             },
         });
+		whiteboard.setDrawColor (invitationColor);
 
         // on startup select mouse
         shortcutFunctions.setTool_mouse();

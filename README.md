@@ -105,12 +105,15 @@ The following are predefined shortcuts that you can override in the file [./src/
 
 Call your site with GET parameters to change the WhiteboardID or the Username
 
-`http://YOURIP:8080?whiteboardid=MYID&username=MYNAME`
+`http://YOURIP:8080?whiteboardid=MYID&username=MYNAME&color=MYCOLOR`
 
 - whiteboardid => All people with the same ID are drawing on the same board
-- username => The name witch is showing to others while drawing
+- username => The name which may be shown to others while drawing
+- color => The color identifying the contributions of this user
 - title => Change the name of the Browser Tab
 - randomid => if set to true, a random whiteboardId will be generated if not given aswell
+- status => host, guest, shy guest, observer - each has a different UX
+- folder => webDAV address to store uploads and board content
 
 ## Configuration
 
@@ -141,7 +144,7 @@ Done!
 
 #### WebDAV (Optional)
 
-This function allows your users to save the whiteboard directly to a webdav server (Nextcloud) as image without downloading it.
+This function allows your users to save the whiteboard directly to a webdav server (e.g. Nextcloud) as image without downloading it.
 
 To enable set `enableWebdav` to `true` in the [configuration](./config.default.yml).
 

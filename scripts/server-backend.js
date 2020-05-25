@@ -85,6 +85,10 @@ function startBackendServer(port) {
         });
         form.parse(req);
     });
+	app.all ("*", (req, res) => {
+		console.log ("Unmatched request", req.url);
+		res.status (400);
+	});
 
     function progressUploadFormData(formData, callback) {
         console.log("Progress new Form Data");

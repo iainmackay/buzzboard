@@ -6,7 +6,9 @@
   "directories": {},
   "scripts": {
     "build": "webpack --config config/webpack.build.js",
+    "build:dev": "webpack --config config/webpack.dev.js",
     "start:dev": "node scripts/server.js --mode=development",
+    "start:dev2": "npm run build:dev && node scripts/server.js --mode=production",
     "start:prod": "npm run build && node scripts/server.js --mode=production",
     "test": "jest",
     "pretty-quick": "pretty-quick",
