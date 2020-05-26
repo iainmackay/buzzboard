@@ -733,6 +733,9 @@ function initWhiteboard() {
 			ReadOnlyService.activateReadOnlyMode();
 			InfoService.hideInfo();
 		}
+
+		// Expose the whiteboard in all its glory
+		enableHtml ();
 	});
 
 	//Prevent site from changing tab on drag&drop

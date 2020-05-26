@@ -4,10 +4,22 @@
         <title>Whiteboard</title>
         <meta charset="utf-8" />
         <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico" />
+		<script type="text/javascript">
+			// Avoid FOUC
+			var __html = document.getElementsByTagName ("html") [0];
+			__html.style.display="none";
+			function enableHtml () {
+				__html.style.removeProperty ('display');
+			}
+			// Actually remove it in main.js after its initialisation
+			/* document.addEventListener ("DOMContentLoaded", (event) => {
+				enableHtml ();
+			}); */
+		</script>
     </head>
 
     <body>
-        <!---Whiteboard container -!-->
+        <!---Whiteboard container-->
         <div id="whiteboardContainer"></div>
 
         <!---Toolbar -!-->
