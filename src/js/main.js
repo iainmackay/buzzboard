@@ -312,7 +312,11 @@ function initWhiteboard() {
 				if (ReadOnlyService.readOnlyActive) return;
 				showBasicAlert("Please drag the image into the browser.");
 			});
+		} else {
+			$("#addImgToCanvasBtn").css({display: "none"});
+		}
 
+		if (participantType !== "participant") {
 			// save image as image
 			$("#saveAsImageBtn").click(function () {
 				whiteboard.getImageDataBase64(ConfigService.imageDownloadFormat, function (imgData) {
@@ -331,7 +335,11 @@ function initWhiteboard() {
 					}, 0);
 				});
 			});
+		} else {
+			$("#saveAsImageBtn").css({display: "none"});
+		}
 
+		if (participantType == "internal") {
 			// save image to json containing steps
 			$("#saveAsJSONBtn").click(function () {
 				var imgData = whiteboard.getImageDataJson();
@@ -445,8 +453,6 @@ function initWhiteboard() {
 				$("#myFile").click();
 			});
 		} else {
-			$("#addImgToCanvasBtn").css({display: "none"});
-			$("#saveAsImageBtn").css({display: "none"});
 			$("#saveAsJSONBtn").css({display: "none"});
 			$("#uploadWebDavBtn").css({display: "none"});
 			$("#uploadJsonBtn").css({display: "none"});
@@ -526,13 +532,13 @@ function initWhiteboard() {
 				whiteboard.setStrokeThickness($(this).val());
 			});
 		} else {
-			$("#whiteboardThicknessSlider").css({display: "none"});
+			$(".thickColor").css({display: "none"});
 		}
 
 		// handle drag&drop
 		var dragCounter = 0;
 		$("#whiteboardContainer").on("dragenter", function (e) {
-			if (ReadOnlyService.readOnlyActive) return;
+			if (ReadOnlyService.readOnlyActive || participantType !== "internal") return;
 			e.preventDefault();
 			e.stopPropagation();
 			dragCounter++;
@@ -540,7 +546,7 @@ function initWhiteboard() {
 		});
 
 		$("#whiteboardContainer").on("dragleave", function (e) {
-			if (ReadOnlyService.readOnlyActive) return;
+			if (ReadOnlyService.readOnlyActive || participantType !== "internal") return;
 
 			e.preventDefault();
 			e.stopPropagation();
@@ -552,7 +558,7 @@ function initWhiteboard() {
 
 		$("#whiteboardContainer").on("drop", function (e) {
 			//Handle drop
-			if (ReadOnlyService.readOnlyActive) return;
+			if (ReadOnlyService.readOnlyActive || participantType !== "internal") return;
 
 			if (e.originalEvent.dataTransfer) {
 				if (e.originalEvent.dataTransfer.files.length) {
