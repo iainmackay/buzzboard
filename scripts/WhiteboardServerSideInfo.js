@@ -1,4 +1,5 @@
 const config = require("./config/config");
+const { createClient } = require("webdav");
 
 /**
  * Class to hold information related to a whiteboard
@@ -26,6 +27,46 @@ class WhiteboardServerSideInfo {
          * @type {boolean}
          */
         this._hasNonSentUpdates = false;
+		
+		/**
+		 * Host for webdav folder for persisting whiteboard content
+         *
+         * @private
+         * @type {string}
+         */
+        this._webdavHost = null;
+		
+		/**
+		 * Username for webdav folder for persisting whiteboard content
+         *
+         * @private
+         * @type {string}
+         */
+        this._webdavUser = null;
+		
+		/**
+		 * Password for webdav folder for persisting whiteboard content
+         *
+         * @private
+         * @type {string}
+         */
+        this._webdavPass = null;
+		
+		/**
+		 * Path to webdav folder for persisting whiteboard content
+         *
+         * @private
+         * @type {string}
+         */
+        this._webdavPath = null;
+		
+		/**
+		 * Webdav client for this whiteboard
+         *
+         * @private
+         * @type {string}
+         */
+        this._webdavClient = null;
     }
 
     incrementNbConnectedUsers() {
@@ -74,6 +115,29 @@ class WhiteboardServerSideInfo {
             h: Math.min(...Array.from(resolutions.values()).map((res) => res.h)),
         };
     }
+
+    /**
+     * Save webdav parameters
+     *
+     * @param {string} webdav host
+     * @param {string} webdav username
+     * @param {string} webdav password
+     * @param {string} webdav folder
+     */
+    setWebdav (host, username, password, path) {
+		this._webdavHost = host;
+		this._webdavUser = username;
+		this._webdavPass = password;
+		this._webdavPath = path;
+		this._webdavClient = createClient ("https://" + host, {
+			username: username,
+			password: password,
+		});
+	}
+	
+	get webdavClient () {
+		return this._webdavClient
+	}
 
     infoWasSent() {
         this._hasNonSentUpdates = false;

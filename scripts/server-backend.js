@@ -1,9 +1,13 @@
 const path = require("path");
-
 const config = require("./config/config");
 const URLPrefix = config.frontend.URLPrefix;
 
 const WhiteboardServerSideInfo = require("./WhiteboardServerSideInfo");
+
+/**
+ * @type {Map<string, WhiteboardServerSideInfo>}
+ */
+const infoByWhiteboard = new Map();
 
 function startBackendServer(port) {
     var fs = require("fs-extra");
@@ -14,6 +18,7 @@ function startBackendServer(port) {
     const { JSDOM } = require("jsdom");
     const window = new JSDOM("").window;
     const DOMPurify = createDOMPurify(window);
+	const got = require ("got");
 
     const { createClient } = require("webdav");
 
@@ -34,9 +39,17 @@ function startBackendServer(port) {
         var wid = req["query"]["wid"];
         var at = req["query"]["at"]; //accesstoken
         if (accessToken === "" || accessToken == at) {
-            var ret = s_whiteboard.loadStoredData(wid);
-            res.send(ret);
-            res.end();
+			s_whiteboard.loadStoredData(wid, infoByWhiteboard [wid])
+			.then ((ret) => {
+				res.send(ret);
+				res.end ();
+			})
+			.catch ((e) => {
+				console.log ("Failed to load board", e);
+				res.send ([]);
+				res.end ();
+			})
+			;
         } else {
             res.status(401); //Unauthorized
             res.end();
@@ -181,11 +194,6 @@ function startBackendServer(port) {
         }
     }
 
-    /**
-     * @type {Map<string, WhiteboardServerSideInfo>}
-     */
-    const infoByWhiteboard = new Map();
-
     setInterval(() => {
         infoByWhiteboard.forEach((info, whiteboardId) => {
             if (info.shouldSendInfo()) {
@@ -231,20 +239,41 @@ function startBackendServer(port) {
         socket.on("joinWhiteboard", function (content) {
             content = escapeAllContentStrings(content);
             if (accessToken === "" || accessToken == content["at"]) {
-                socket.emit("whiteboardConfig", { common: config.frontend });
-
-                whiteboardId = content["wid"];
-                socket.join(whiteboardId); //Joins room name=wid
-                if (!infoByWhiteboard.has(whiteboardId)) {
-                    infoByWhiteboard.set(whiteboardId, new WhiteboardServerSideInfo());
-                }
-
-                const whiteboardServerSideInfo = infoByWhiteboard.get(whiteboardId);
-                whiteboardServerSideInfo.incrementNbConnectedUsers();
-                whiteboardServerSideInfo.setScreenResolutionForClient(
-                    socket.id,
-                    content["windowWidthHeight"] || WhiteboardServerSideInfo.defaultScreenResolution
-                );
+				whiteboardId = content["wid"];
+				socket.join(whiteboardId); //Joins room name=wid
+				if (!infoByWhiteboard.has(whiteboardId)) {
+					infoByWhiteboard.set(whiteboardId, new WhiteboardServerSideInfo());
+				}
+				const whiteboardServerSideInfo = infoByWhiteboard.get(whiteboardId);
+				whiteboardServerSideInfo.incrementNbConnectedUsers();
+				whiteboardServerSideInfo.setScreenResolutionForClient(
+					socket.id,
+					content["windowWidthHeight"] || WhiteboardServerSideInfo.defaultScreenResolution
+				);
+				got.post (
+					config.backend.tokenService +
+					"/token/key/" +
+					config.backend.whiteboardToken +
+					"/decode-token", {
+						json: {token: content.token},
+						responseType: "json"
+					}
+				).then ((response) => {
+					const payload = response.body;
+					console.log ("Verified token as", payload)
+					whiteboardServerSideInfo.setWebdav (
+						payload.host,
+						payload.user,
+						payload.pass,
+						payload.path
+					);
+					s_whiteboard.setWebdav (whiteboardId,
+						whiteboardServerSideInfo.webdavClient, payload.path);
+					console.log ("Whiteboard token verified");
+					socket.emit("whiteboardConfig", { common: config.frontend });
+				}).catch ((error) => {
+					console.log ("Failed to verify token", content.wid, "error", error);
+				})
             } else {
                 socket.emit("wrongAccessToken", true);
             }

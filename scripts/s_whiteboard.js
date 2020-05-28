@@ -1,7 +1,8 @@
-//This file is only for saving the whiteboard. (Not to a file, only to RAM atm. Whiteboard is gone after server restart)
+//This file is for saving the whiteboard. Persisted in webdav, cached in memory.
 
 var savedBoards = {};
 var savedUndos = {};
+var savedWebdavs = {};
 module.exports = {
 	// Not verifying user entitlement to post content presently
     handleEventsAndData: function (content) {
@@ -96,8 +97,19 @@ module.exports = {
             savedBoards[wid].push(content);
         }
     },
-    loadStoredData: function (wid) {
+	// loadStoredData returns a promise to load
+    loadStoredData: async function (wid, serverSideInfo) {
         //Load saved whiteboard
-        return savedBoards[wid] ? savedBoards[wid] : [];
+		const board = savedBoards [wid], wd = savedWebdavs [wid];
+		const boardFilepath = `${wd.path}/${encodeURIComponent(wid)}.json`
+		console.log ("loadStoredData (if exists) from", boardFilepath);
+		if (board) {
+			return board
+		} else {
+			return await wd.client.getFileContents (boardFilepath);
+		}
     },
+	setWebdav: function (wid, client, path) {
+		savedWebdavs [wid] = {client, path}
+	}
 };

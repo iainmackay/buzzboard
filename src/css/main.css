@@ -14,9 +14,6 @@ body {
     height: calc(var(--vh, 1vh) * 100);
     width: 100%;
 }
-.hidden {
-		display: none;
-}
 
 .btn-group button {
     background: transparent;

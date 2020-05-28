@@ -15,6 +15,9 @@ let whiteboardId = getQueryVariable("whiteboardid");
 const randomid = getQueryVariable("randomid");
 const invitationColor = getQueryVariable("color");
 const participantType = getQueryVariable("type");
+const token = getQueryVariable ("token");
+
+console.log ("Loading whiteboard", participantType, token);
 if (randomid && !whiteboardId) {
 	//set random whiteboard on empty whiteboardid
 	whiteboardId = Array(2)
@@ -48,6 +51,7 @@ function main() {
 		console.log("Websocket connected!");
 
 		signaling_socket.on("whiteboardConfig", (serverResponse) => {
+			console.log ("whiteboardConfig", serverResponse);
 			ConfigService.initFromServer(serverResponse);
 			// Init whiteboard only when we have the config from the server
 			initWhiteboard();
@@ -78,9 +82,10 @@ function main() {
 		signaling_socket.emit("joinWhiteboard", {
 			wid: whiteboardId,
 			at: accessToken,
+			token: token,
 			windowWidthHeight: { w: $(window).width(), h: $(window).height() },
 		});
-	});
+	})
 }
 
 function showBasicAlert(html, newOptions) {
@@ -133,6 +138,7 @@ function showBasicAlert(html, newOptions) {
 function initWhiteboard() {
 	$(document).ready(function () {
 		// by default set in readOnly mode
+		console.log ("initWhiteboard");
 		ReadOnlyService.activateReadOnlyMode();
 
 		if (getQueryVariable("webdav") == "true") {
@@ -156,7 +162,11 @@ function initWhiteboard() {
 		});
 
 		// request whiteboard from server
-		$.get(subdir + "/api/loadwhiteboard", { wid: whiteboardId, at: accessToken }).done(
+		$.get(subdir + "/api/loadwhiteboard", {
+				wid: whiteboardId,
+				at: accessToken,
+				token: token
+		}).done (
 			function (data) {
 				whiteboard.loadData(data);
 			}

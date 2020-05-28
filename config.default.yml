@@ -4,7 +4,11 @@ backend:
   accessToken: ""
 
   # Enable the function to save to a webdav-server (check README for more info) -- boolean
-  enableWebdav: true
+  enableWebdav: false
+  
+  # Token verification details
+  tokenService: "https://us-central1-miranda2.cloudfunctions.net"
+  whiteboardToken: "5UVCKlyrstTCCWbg_5PDueGMPY0byaH_Q6OfmEfqDQircePmnX5csaB4d0kziNUj1fYFKa9DJOIx7Tz-xOOrV6GaTWDM-HNJlo1duSyNZOCgtr_NSuaIGpxXF4SjHjIf9F20GnXLDxTlAWGx3TJ2jbqgy1tbWCJ2RLi3kSBOcdvRkq3zz3qA5HfFUSkuQYKrs30hsrsFFtC2I2KJ4fFkc_9FNC0bt4OBBxhDkNoKbPjvaUrJX67Ct84csdmpTZMskUxZ53bMGtR08VV2EYnIFnzfHFSDrq2XU0sK5BXjiz9UkvGgQIezqSWf65cZp6GfRSODUnL09aYSvX7tEiS3lw"
 
   # Backend performance tweaks
   performance:
