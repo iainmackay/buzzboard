@@ -4,7 +4,7 @@ import ReadOnlyService from "./services/ReadOnlyService";
 import InfoService from "./services/InfoService";
 import ThrottlingService from "./services/ThrottlingService";
 import ConfigService from "./services/ConfigService";
-import { fillTextMultiLine } from "./utils";
+import { fillTextMultiLine , generateUUID, escapeHTML} from "./utils";
 import html2canvas from "html2canvas";
 
 const RAD_TO_DEG = 180.0 / Math.PI;
@@ -53,6 +53,13 @@ const whiteboard = {
         sendFunction: null,
         backgroundGridUrl: "./images/KtEBa2.png",
     },
+	useruuids: {},
+	uuidOfUser: function (u) {
+		if (!this.useruuids [u]) {
+			this.useruuids [u] = generateUUID ()
+		}
+		return useruuids [u]
+	},
     lastPointerSentTime: 0,
     /**
      * @type Point
@@ -65,9 +72,6 @@ const whiteboard = {
             this.settings[i] = newSettings[i];
         }
 		console.log ("whiteboard settings", JSON.stringify (this.settings));
-		// Why these?
-        //this.settings["username"] = this.settings["username"].replace(/[^0-9a-z]/gi, "");
-        //this.settings["whiteboardId"] = this.settings["whiteboardId"].replace(/[^0-9a-z]/gi, "");
 
         //background grid (repeating image) and smallest screen indication
         _this.backgroundGrid = $(
@@ -122,7 +126,7 @@ const whiteboard = {
         this.oldGCO = this.ctx.globalCompositeOperation;
 
         $(window).resize(function () {
-            // Handel resize
+            // Handle resize
             const dbCp = JSON.parse(JSON.stringify(_this.drawBuffer)); // Copy the buffer
             _this.canvas.width = $(window).width();
             _this.canvas.height = $(window).height(); // Set new canvas height
@@ -892,8 +896,9 @@ const whiteboard = {
             },
         });
         textBox.find(".textContent").on("input", function () {
-            var text = btoa(unescape(encodeURIComponent($(this).html()))); //Get html and make encode base64 also take care of the charset
-            _this.sendFunction({ t: "setTextboxText", d: [txId, text] });
+            // var text = btoa(unescape(encodeURIComponent($(this).html()))); //Get html and make encode base64 also take care of the charset
+			console.log ("Text input", $(this).html ());
+            _this.sendFunction({ t: "setTextboxText", d: [txId, $(this).html()] });
         });
         textBox.find(".removeIcon").click(function (e) {
             $("#" + txId).remove();
@@ -914,7 +919,8 @@ const whiteboard = {
     setTextboxText(txId, text) {
         $("#" + txId)
             .find(".textContent")
-            .html(decodeURIComponent(escape(atob(text)))); //Set decoded base64 as html
+			.html(text)
+            //.html(decodeURIComponent(escape(atob(text)))); //Set decoded base64 as html
     },
     removeTextbox(txId) {
         $("#" + txId).remove();
@@ -1116,9 +1122,10 @@ const whiteboard = {
                 _this.drawId = 0;
             } else if (tool === "cursor" && _this.settings) {
                 if (content["event"] === "move") {
-                    if (_this.cursorContainer.find("." + content["username"]).length >= 1) {
+					const uuid = userUUID (content["username"]);
+                    if (_this.cursorContainer.find("." + uuid).length >= 1) {
                         _this.cursorContainer
-                            .find("." + content["username"])
+                            .find("." + uuid)
                             .css({ left: data[0] + "px", top: data[1] - 15 + "px" });
                     } else {
                         _this.cursorContainer.append(
@@ -1127,15 +1134,15 @@ const whiteboard = {
                                 "px; top:" +
                                 (data[1] - 151) +
                                 'px;" class="userbadge ' +
-                                content["username"] +
+                                uuid +
                                 '">' +
-                                '<div style="width:4px; height:4px; background:gray; position:absolute; top:13px; left:-2px; border-radius:50%;"></div>' +
-                                decodeURIComponent(atob(content["username"])) +
+                                '<div style="width:4px; height:4px; background:gray; position:absolute; top:13px; (usern left:-2px; border-radius:50%;"></div>' +
+                                escapeHTML (content.username) +
                                 "</div>"
                         );
                     }
                 } else {
-                    _this.cursorContainer.find("." + content["username"]).remove();
+                    _this.cursorContainer.find("." + userUUID (content["username"])).remove();
                 }
             } else if (tool === "undo") {
                 _this.undoWhiteboard(username);

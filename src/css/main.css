@@ -111,6 +111,10 @@ button {
     display: block;
 }
 
+.textContainer {
+		overflow: hidden;
+}
+
 .modalBtn {
     padding: 5px;
     border-radius: 5px;

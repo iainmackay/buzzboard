@@ -259,8 +259,8 @@ function startBackendServer(port) {
 
     //Prevent cross site scripting (xss)
     function escapeAllContentStrings(content, cnt) {
-		// This is too aggressive but leave as is for now
-
+		return content;
+		// This is too aggressive 
         if (!cnt) cnt = 0;
 
         if (typeof content === "string") {
