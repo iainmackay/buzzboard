@@ -34,11 +34,12 @@ whiteboardId = whiteboardId || "myNewWhiteboard";
 //whiteboardId = unescape(encodeURIComponent(whiteboardId)).replace(/[^a-zA-Z0-9 ]/g, "");
 const myUsername = getQueryVariable("username") || "unknown" + (Math.random() + "").substring(2, 6);
 const accessToken = getQueryVariable("accesstoken") || "";
+console.log ("Username", myUsername, "whiteboardid", whiteboardId);
 
 // Custom Html Title
 const title = getQueryVariable("title");
-if (!title === false) {
-	document.title = decodeURIComponent(title);
+if (!!title) {
+	document.title = title;
 }
 
 const subdir = getSubDir();
@@ -148,7 +149,8 @@ function initWhiteboard() {
 		whiteboard.loadWhiteboard("#whiteboardContainer", {
 			//Load the whiteboard
 			whiteboardId: whiteboardId,
-			username: btoa(myUsername),
+			//username: btoa(myUsername),
+			username: myUsername,
 			sendFunction: function (content) {
 				if (ReadOnlyService.readOnlyActive) return;
 				//ADD IN LATER THROUGH CONFIG
@@ -777,11 +779,8 @@ function initWhiteboard() {
 				date: date,
 				at: accessToken,
 			},
-			success: function (msg) {
-				var filename = whiteboardId + "_" + date + ".png";
-				whiteboard.addImgToCanvasByUrl(
-					document.URL.substr(0, document.URL.lastIndexOf("/")) + "/uploads/" + filename
-				); //Add image to canvas
+			success: function (URL) {
+				whiteboard.addImgToCanvasByUrl(URL);
 				console.log("Image uploaded!");
 			},
 			error: function (err) {
@@ -790,7 +789,7 @@ function initWhiteboard() {
 		});
 	}
 
-	function saveWhiteboardToWebdav(base64data, webdavaccess, callback) {
+	function saveWhiteboardToWebdav(base64data, callback) {
 		var date = +new Date();
 		$.ajax({
 			type: "POST",
@@ -799,20 +798,19 @@ function initWhiteboard() {
 				imagedata: base64data,
 				whiteboardId: whiteboardId,
 				date: date,
-				at: accessToken,
-				webdavaccess: JSON.stringify(webdavaccess),
+				at: accessToken
 			},
-			success: function (msg) {
-				showBasicAlert("Whiteboard was saved to Webdav!", {
+			success: function (URL) {
+				showBasicAlert("Whiteboard was saved to Webdav at " + URL, {
 					headercolor: "#5c9e5c",
 				});
-				console.log("Image uploaded for webdav!");
+				console.log("Whiteboard saved to webdav!");
 				callback();
 			},
 			error: function (err) {
 				if (err.status == 403) {
 					showBasicAlert(
-						"Could not connect to Webdav folder! Please check the credentials and paths and try again!"
+						"Could not connect to storage server - whiteboard not saved"
 					);
 				} else {
 					showBasicAlert("Unknown Webdav error! ", err);

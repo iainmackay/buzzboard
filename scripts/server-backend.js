@@ -26,7 +26,7 @@ function startBackendServer(port) {
 
     var app = express();
     app.use(URLPrefix, express.static(path.join(__dirname, "..", "dist")));
-    app.use(URLPrefix + "/uploads", express.static(path.join(__dirname, "..", "public", "uploads")));
+    //app.use(URLPrefix + "/uploads", express.static(path.join(__dirname, "..", "public", "uploads")));
     var server = require("http").Server(app);
     server.listen(port);
     var io = require("socket.io")(server, { path: URLPrefix + "/ws-api" });
@@ -39,13 +39,17 @@ function startBackendServer(port) {
         var wid = req["query"]["wid"];
         var at = req["query"]["at"]; //accesstoken
         if (accessToken === "" || accessToken == at) {
-			s_whiteboard.loadStoredData(wid, infoByWhiteboard [wid])
+			s_whiteboard.loadStoredData(wid)
 			.then ((ret) => {
 				res.send(ret);
 				res.end ();
 			})
 			.catch ((e) => {
-				console.log ("Failed to load board", e);
+				if (e.status == 404) {
+					console.log ("First open of board", wid);
+				} else {
+					console.log ("Error loading board", e);
+				}
 				res.send ([]);
 				res.end ();
 			})
@@ -78,6 +82,22 @@ function startBackendServer(port) {
 
         form.on("end", function () {
             if (accessToken === "" || accessToken == formData["fields"]["at"]) {
+				progressUploadFormData (formData)
+				.then ((url) => {
+					console.log ("Image uploaded to", url);
+					res.send (url);
+				})
+				.catch ((err) => {
+					if (err == "403") {
+						res.status(403);
+					} else {
+						res.status(500);
+					}
+					res.end();
+					console.log ("Image upload failed", err);
+				})
+				;
+				return;
                 progressUploadFormData(formData, function (err) {
                     if (err) {
                         if (err == "403") {
@@ -103,96 +123,64 @@ function startBackendServer(port) {
 		res.status (400);
 	});
 
-    function progressUploadFormData(formData, callback) {
+    async function progressUploadFormData(formData) {
         console.log("Progress new Form Data");
         var fields = escapeAllContentStrings(formData.fields);
         var files = formData.files;
         var whiteboardId = fields["whiteboardId"];
 
         var name = fields["name"] || "";
-        var date = fields["date"] || +new Date();
-        var filename = whiteboardId + "_" + date + "." + imageDownloadFormat;
-        var webdavaccess = fields["webdavaccess"] || false;
-        try {
-            webdavaccess = JSON.parse(webdavaccess);
-        } catch (e) {
-            webdavaccess = false;
-        }
-        fs.ensureDir("./public/uploads", function (err) {
-            if (err) {
-                console.log("Could not create upload folder!", err);
-                return;
-            }
-            var imagedata = fields["imagedata"];
-            if (imagedata && imagedata != "") {
-                //Save from base64 data
-                imagedata = imagedata
-                    .replace(/^data:image\/png;base64,/, "")
-                    .replace(/^data:image\/jpeg;base64,/, "");
-                console.log(filename, "uploaded");
-                fs.writeFile("./public/uploads/" + filename, imagedata, "base64", function (err) {
-                    if (err) {
-                        console.log("error", err);
-                        callback(err);
-                    } else {
-                        if (webdavaccess) {
-                            //Save image to webdav
-                            if (enableWebdav) {
-                                saveImageToWebdav(
-                                    "./public/uploads/" + filename,
-                                    filename,
-                                    webdavaccess,
-                                    function (err) {
-                                        if (err) {
-                                            console.log("error", err);
-                                            callback(err);
-                                        } else {
-                                            callback();
-                                        }
-                                    }
-                                );
-                            } else {
-                                callback("Webdav is not enabled on the server!");
-                            }
-                        } else {
-                            callback();
-                        }
-                    }
-                });
-            } else {
-                callback("no imagedata!");
-                console.log("No image Data found for this upload!", name);
-            }
-        });
+        var date = fields["date"] || + new Date();
+        var filename = date + "." + imageDownloadFormat;
+		var imagedata = fields["imagedata"];
+		if (imagedata && imagedata != "") {
+			//Save from base64 data
+			imagedata = imagedata
+				.replace(/^data:image\/png;base64,/, "")
+				.replace(/^data:image\/jpeg;base64,/, "");
+			return await saveImageToWebdav(
+				imagedata,
+				filename,
+				whiteboardId,
+				function (err) {
+					if (err) {
+						console.log("error", err);
+						callback(err);
+					} else {
+						callback();
+					}
+				}
+			);
+		} else {
+			console.log("No image Data found for this upload!", name);
+			throw new Error (400);
+		}
     }
 
-    function saveImageToWebdav(imagepath, filename, webdavaccess, callback) {
-        if (webdavaccess) {
-            var webdavserver = webdavaccess["webdavserver"] || "";
-            var webdavpath = webdavaccess["webdavpath"] || "/";
-            var webdavusername = webdavaccess["webdavusername"] || "";
-            var webdavpassword = webdavaccess["webdavpassword"] || "";
-
-            const client = createClient(webdavserver, {
-                username: webdavusername,
-                password: webdavpassword,
-            });
-            client
-                .getDirectoryContents(webdavpath)
-                .then((items) => {
-                    var cloudpath = webdavpath + "" + filename;
-                    console.log("webdav saving to:", cloudpath);
-                    fs.createReadStream(imagepath).pipe(client.createWriteStream(cloudpath));
-                    callback();
-                })
-                .catch((error) => {
-                    callback("403");
-                    console.log("Could not connect to webdav!");
-                });
-        } else {
-            callback("Error: no access data!");
-        }
-    }
+    async function saveImageToWebdav(
+		imagedata,
+		filename,
+		whiteboardId) {
+		const whiteboardServerSideInfo = infoByWhiteboard.get(whiteboardId);
+		const client = whiteboardServerSideInfo.webdavClient;
+		const host = whiteboardServerSideInfo.webdavHost;
+		const path = whiteboardServerSideInfo.webdavPath;
+		const imagepath = `https://${host}${path}/${encodeURIComponent (filename)}`;
+		console.log ("Save image to webdav", imagepath);
+		return imagepath;
+		client
+			.getDirectoryContents(webdavpath)
+			.then((items) => {
+				var cloudpath = webdavpath + "" + filename;
+				console.log("webdav saving to:", cloudpath);
+				fs.createReadStream(imagepath).pipe(client.createWriteStream(cloudpath));
+				callback();
+			})
+			.catch((error) => {
+				callback("403");
+				console.log("Could not connect to webdav!");
+			});
+	}
 
     setInterval(() => {
         infoByWhiteboard.forEach((info, whiteboardId) => {
@@ -245,11 +233,6 @@ function startBackendServer(port) {
 					infoByWhiteboard.set(whiteboardId, new WhiteboardServerSideInfo());
 				}
 				const whiteboardServerSideInfo = infoByWhiteboard.get(whiteboardId);
-				whiteboardServerSideInfo.incrementNbConnectedUsers();
-				whiteboardServerSideInfo.setScreenResolutionForClient(
-					socket.id,
-					content["windowWidthHeight"] || WhiteboardServerSideInfo.defaultScreenResolution
-				);
 				got.post (
 					config.backend.tokenService +
 					"/token/key/" +
@@ -267,10 +250,18 @@ function startBackendServer(port) {
 						payload.pass,
 						payload.path
 					);
+					console.log ("Webdav credentials", payload.user, payload.pass);
 					s_whiteboard.setWebdav (whiteboardId,
-						whiteboardServerSideInfo.webdavClient, payload.path);
+						whiteboardServerSideInfo.webdavClient, payload.path//,
+						//whiteboardServerSideInfo.webdavURL
+					);
 					console.log ("Whiteboard token verified");
 					socket.emit("whiteboardConfig", { common: config.frontend });
+					whiteboardServerSideInfo.incrementNbConnectedUsers();
+					whiteboardServerSideInfo.setScreenResolutionForClient(
+						socket.id,
+						content["windowWidthHeight"] || WhiteboardServerSideInfo.defaultScreenResolution
+					);
 				}).catch ((error) => {
 					console.log ("Failed to verify token", content.wid, "error", error);
 				})
@@ -313,6 +304,7 @@ function startBackendServer(port) {
         // Will print "unhandledRejection err is not defined"
         console.log("unhandledRejection", error.message);
     });
+	s_whiteboard.initialise ();
 }
 
 module.exports = startBackendServer;

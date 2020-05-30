@@ -1,7 +1,7 @@
 import ConfigService from "./ConfigService";
 
 /**
- * Class the handle the information about the whiteboard
+ * Class to handle the information about the whiteboard
  */
 class InfoService {
     /**

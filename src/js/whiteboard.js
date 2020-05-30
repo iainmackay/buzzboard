@@ -64,8 +64,10 @@ const whiteboard = {
         for (const i in newSettings) {
             this.settings[i] = newSettings[i];
         }
-        this.settings["username"] = this.settings["username"].replace(/[^0-9a-z]/gi, "");
-        this.settings["whiteboardId"] = this.settings["whiteboardId"].replace(/[^0-9a-z]/gi, "");
+		console.log ("whiteboard settings", JSON.stringify (this.settings));
+		// Why these?
+        //this.settings["username"] = this.settings["username"].replace(/[^0-9a-z]/gi, "");
+        //this.settings["whiteboardId"] = this.settings["whiteboardId"].replace(/[^0-9a-z]/gi, "");
 
         //background grid (repeating image) and smallest screen indication
         _this.backgroundGrid = $(

@@ -1,18 +1,67 @@
-//This file is for saving the whiteboard. Persisted in webdav, cached in memory.
+//This file is for saving the whiteboard. Persisted at intervals in webdav, cached in memory.
 
-var savedBoards = {};
-var savedUndos = {};
-var savedWebdavs = {};
+let savedBoards = {};
+let savedUndos = {};
+let savedWebdavs = {};
+let eventCounts = {};
+let lastCheckpoints = {};
+
+async function saveBoard (wid) {
+		const board = savedBoards [wid], wd = savedWebdavs [wid];
+		//const boardFilepath = `${wd.path}/${encodeURIComponent(wid)}.json`;
+		const boardFilepath = `${wd.path}/${wid}.json`;
+		console.log ("Webdav folder", await wd.client.getDirectoryContents (wd.path));
+		console.log (`Saving board '${wid}' to ${boardFilepath}`);
+		await wd.client.putFileContents (boardFilepath, 
+			JSON.stringify (board));
+};
+
+function saveTimer () {
+		// if any changes since last save, upload the board to webdav
+		console.log ("saveTimer invoked");
+		for (const wid in savedBoards) {
+			const board = savedBoards [wid];
+			const count = eventCounts [wid];
+			const lastCheckpoint = lastCheckpoints [wid];
+			//console.log ("Board", wid, savedBoards [wid].length, count, lastCheckpoint);
+			if (count > lastCheckpoint) {
+				saveBoard (wid)
+				.then (() => {
+					lastCheckpoints [wid] = count;
+					//console.log (`Checkpointed board ${wid} at change ${count}`);
+				})
+				.catch ((err) => {
+					console.log (`Failed to checkpoint board ${wid} at change ${count}: ${err}`);
+				});
+				;
+			}
+		}
+		saveTimeout = setTimeout (saveTimer, 60000);
+}
+
 module.exports = {
 	// Not verifying user entitlement to post content presently
     handleEventsAndData: function (content) {
         var tool = content["t"]; //Tool used
         var wid = content["wid"]; //whiteboard ID
+ 		if (tool !== "cursor") {
+			console.log ("Whiteboard change event", content);
+			if (savedBoards[wid]) {
+				eventCounts [wid] += 1;
+				console.log ("New event count for", wid, eventCounts [wid]);
+			}
+		}
         var username = content["username"];
         if (tool === "clear") {
             //Clear the whiteboard
             delete savedBoards[wid];
             delete savedUndos[wid];
+			delete eventCounts[wid];
+			delete lastCheckpoints[wid];
+			savedBoards [wid] = [];
+			savedUndos [wid] = [];
+			eventCounts [wid] = 0;
+			lastCheckpoints [wid] = 0;
         } else if (tool === "undo") {
             //Undo an action
             if (!savedUndos[wid]) {
@@ -98,18 +147,27 @@ module.exports = {
         }
     },
 	// loadStoredData returns a promise to load
-    loadStoredData: async function (wid, serverSideInfo) {
+    loadStoredData: async function (wid) {
         //Load saved whiteboard
 		const board = savedBoards [wid], wd = savedWebdavs [wid];
-		const boardFilepath = `${wd.path}/${encodeURIComponent(wid)}.json`
-		console.log ("loadStoredData (if exists) from", boardFilepath);
+		const boardFilepath = `${wd.path}/${wid}.json`
 		if (board) {
 			return board
 		} else {
-			return await wd.client.getFileContents (boardFilepath);
+			console.log ("loadStoredData (if exists) from", boardFilepath);
+			eventCounts [wid] = 0;
+			lastCheckpoints [wid] = 0;
+			const boardJSON = await wd.client.getFileContents (boardFilepath, {format: "text"})
+			//console.log ("Board retrieved as", typeof boardJSON, boardJSON);
+			savedBoards [wid] = boardJSON;
+			return savedBoards [wid];
 		}
     },
-	setWebdav: function (wid, client, path) {
-		savedWebdavs [wid] = {client, path}
+	setWebdav: function (wid, client, path, URLFormer) {
+		savedWebdavs [wid] = {client, path, URLFormer}
+	},
+	initialise: function () {
+		saveTimer ();
+		console.log ("Initialising whiteboard persistence manager");
 	}
 };
