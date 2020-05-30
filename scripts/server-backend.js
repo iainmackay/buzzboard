@@ -97,19 +97,6 @@ function startBackendServer(port) {
 					console.log ("Image upload failed", err);
 				})
 				;
-				return;
-                progressUploadFormData(formData, function (err) {
-                    if (err) {
-                        if (err == "403") {
-                            res.status(403);
-                        } else {
-                            res.status(500);
-                        }
-                        res.end();
-                    } else {
-                        res.send("done");
-                    }
-                });
             } else {
                 res.status(401); //Unauthorized
                 res.end();
@@ -126,7 +113,6 @@ function startBackendServer(port) {
     async function progressUploadFormData(formData) {
         console.log("Progress new Form Data");
         var fields = escapeAllContentStrings(formData.fields);
-        var files = formData.files;
         var whiteboardId = fields["whiteboardId"];
 
         var name = fields["name"] || "";
@@ -158,28 +144,17 @@ function startBackendServer(port) {
     }
 
     async function saveImageToWebdav(
-		imagedata,
+		imageData,
 		filename,
 		whiteboardId) {
 		const whiteboardServerSideInfo = infoByWhiteboard.get(whiteboardId);
 		const client = whiteboardServerSideInfo.webdavClient;
-		const host = whiteboardServerSideInfo.webdavHost;
 		const path = whiteboardServerSideInfo.webdavPath;
-		const imagepath = `https://${host}${path}/${encodeURIComponent (filename)}`;
-		console.log ("Save image to webdav", imagepath);
-		return imagepath;
-		client
-			.getDirectoryContents(webdavpath)
-			.then((items) => {
-				var cloudpath = webdavpath + "" + filename;
-				console.log("webdav saving to:", cloudpath);
-				fs.createReadStream(imagepath).pipe(client.createWriteStream(cloudpath));
-				callback();
-			})
-			.catch((error) => {
-				callback("403");
-				console.log("Could not connect to webdav!");
-			});
+		const webdavPath = `${path}/${filename}`;
+		const imagePath = whiteboardServerSideInfo.webdavURL (filename);
+		console.log ("Save image to webdav", imagePath);
+		await client.putFileContents (webdavPath, Buffer.from (imageData, 'base64'));
+		return imagePath;
 	}
 
     setInterval(() => {
@@ -284,6 +259,8 @@ function startBackendServer(port) {
 
     //Prevent cross site scripting (xss)
     function escapeAllContentStrings(content, cnt) {
+		// This is too aggressive but leave as is for now
+
         if (!cnt) cnt = 0;
 
         if (typeof content === "string") {

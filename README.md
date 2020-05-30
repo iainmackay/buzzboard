@@ -103,7 +103,7 @@ The following are predefined shortcuts that you can override in the file [./src/
 
 ## URL Parameters
 
-Call your site with GET parameters to change the WhiteboardID or the Username
+The whiteboard is 
 
 `http://YOURIP:8080?whiteboardid=MYID&username=MYNAME&color=MYCOLOR`
 
@@ -113,7 +113,9 @@ Call your site with GET parameters to change the WhiteboardID or the Username
 - title => Change the name of the Browser Tab
 - randomid => if set to true, a random whiteboardId will be generated if not given aswell
 - status => host, guest, shy guest, observer - each has a different UX
-- folder => webDAV address to store uploads and board content
+- folder => webdav URL to store uploads and board content (implicit webdav=true)
+
+The expectation is that the whiteboard will be behind a proxy that offers https and accepts only a signed webtoken as a parameter, and these values as the token payload to be extracted and forwarded to this server
 
 ## Configuration
 

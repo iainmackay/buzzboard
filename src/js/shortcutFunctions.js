@@ -45,7 +45,6 @@ const shortcutFunctions = {
     openColorPicker: defineShortcut(() => $("#whiteboardColorpicker").click()),
     saveWhiteboardAsImage: defineShortcut(() => $("#saveAsImageBtn").click(), false),
     saveWhiteboardAsJson: defineShortcut(() => $("#saveAsJSONBtn").click(), false),
-    uploadWhiteboardToWebDav: defineShortcut(() => $("#uploadWebDavBtn").click()),
     uploadJsonToWhiteboard: defineShortcut(() => $("#uploadJsonBtn").click()),
     shareWhiteboard: defineShortcut(() => $("#shareWhiteboardBtn").click(), false),
     hideShowControls: defineShortcut(() => $("#minMaxBtn").click(), false),

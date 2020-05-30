@@ -133,10 +133,13 @@ class WhiteboardServerSideInfo {
 			username: username,
 			password: password,
 		});
-		/* this._webdavURL = (filename) => {
-			return `https://${this._webdavUser}:${this._webdavPass}@${this._webdavHost}${this._webdavPath}/${encodeURIComponent (filename)}`
-		} */
-		//console.log ("Specimen webdav URL", this._webdavURL ("(1)/(2)"));
+		this._webdavURL = (filename, includeAuth) => {
+			const filepath = `${this._webdavPath}/${filename}`;
+			const fileURLPath = filepath.split ("/").map (encodeURIComponent).join ("/");
+			const auth = includeAuth?(`${this._webdavUser}:${this._webdavPass}@`):"";
+			return `https://${auth}${host}${fileURLPath}`;
+		}
+		console.log ("Specimen webdav URL", this._webdavURL ("(1)/(2)"), this._webdavURL ("(1)/(2)", true));
 	}
 	
 	get webdavClient () {
@@ -151,9 +154,9 @@ class WhiteboardServerSideInfo {
 		return this._webdavPath
 	}
 	
-	/* get webdavURL () {
+	get webdavURL () {
 		return this._webdavURL
-	} */
+	}
 
     infoWasSent() {
         this._hasNonSentUpdates = false;

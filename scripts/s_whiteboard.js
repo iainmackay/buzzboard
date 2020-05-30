@@ -10,7 +10,6 @@ async function saveBoard (wid) {
 		const board = savedBoards [wid], wd = savedWebdavs [wid];
 		//const boardFilepath = `${wd.path}/${encodeURIComponent(wid)}.json`;
 		const boardFilepath = `${wd.path}/${wid}.json`;
-		console.log ("Webdav folder", await wd.client.getDirectoryContents (wd.path));
 		console.log (`Saving board '${wid}' to ${boardFilepath}`);
 		await wd.client.putFileContents (boardFilepath, 
 			JSON.stringify (board));
@@ -163,8 +162,8 @@ module.exports = {
 			return savedBoards [wid];
 		}
     },
-	setWebdav: function (wid, client, path, URLFormer) {
-		savedWebdavs [wid] = {client, path, URLFormer}
+	setWebdav: function (wid, client, path) {
+		savedWebdavs [wid] = {client, path}
 	},
 	initialise: function () {
 		saveTimer ();

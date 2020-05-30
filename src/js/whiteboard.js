@@ -16,7 +16,7 @@ const whiteboard = {
     ctx: null,
     drawcolor: "black",
     previousToolHtmlElem: null, // useful for handling read-only mode
-    tool: "mouse",
+    tool: null,
     thickness: 4,
     /**
      * @type Point
@@ -135,7 +135,7 @@ const whiteboard = {
         });
 
         _this.mousedown = function (e) {
-            if (_this.imgDragActive || _this.drawFlag) {
+            if (_this.imgDragActive || _this.drawFlag ||!_this.tool) {
                 return;
             }
             if (ReadOnlyService.readOnlyActive) return;
