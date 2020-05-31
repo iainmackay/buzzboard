@@ -280,6 +280,18 @@ const whiteboard = {
                 _this.drawId--;
                 _this.pushPointSmoothPen(currentPos.x, currentPos.y);
                 _this.drawId++;
+			} else if (_this.tool === "tick" || _this.tool === "cross") {
+				const topLeftX = currentPos.x - _this.thickness*2;
+				const topLeftY = currentPos.y - _this.thickness*2;
+				const url = `/svg/${_this.tool}?color=${encodeURIComponent (_this.drawcolor)||'black'}`;
+				console.log ("Drawing icon", url);
+				_this.drawImgToCanvas (url, _this.thickness*4, _this.thickness*4, topLeftX, topLeftY);
+                _this.sendFunction({
+                    t: _this.tool,
+                    d: [topLeftX, topLeftY],
+                    c: _this.drawcolor,
+                    th: _this.thickness,
+                });
             } else if (_this.tool === "rect") {
                 if (_this.pressedKeys.shift) {
                     if (
@@ -1078,6 +1090,12 @@ const whiteboard = {
                 } else {
                     _this.drawPenSmoothLine(data, color, thickness);
                 }
+			} else if (tool === "tick" || tool === "cross") {
+				const topLeftX = data [0] - thickness*2;
+				const topLeftY = data [1] - thickness*2;
+				const url = `/svg/${tool}?color=${encodeURIComponent (color)}`;
+				console.log ("Drawing icon", url);
+				_this.drawImgToCanvas (url, thickness*4, thickness*4, topLeftX, topLeftY);
             } else if (tool === "rect") {
                 _this.drawRec(data[0], data[1], data[2], data[3], color, thickness);
             } else if (tool === "circle") {
@@ -1156,6 +1174,8 @@ const whiteboard = {
             [
                 "line",
                 "pen",
+				"tick",
+				"cross",
                 "rect",
                 "circle",
                 "eraser",
@@ -1308,6 +1328,8 @@ const whiteboard = {
             [
                 "line",
                 "pen",
+				"tick",
+				"cross",
                 "rect",
                 "circle",
                 "eraser",
@@ -1328,15 +1350,21 @@ const whiteboard = {
     refreshCursorAppearance() {
         //Set cursor depending on current active tool
         var _this = this;
-        if (_this.tool === "pen" || _this.tool === "eraser") {
+		if (!_this.tool) {
+           this.mouseOverlay.css({ cursor: "default" });
+        } else if (_this.tool === "pen" || _this.tool === "eraser") {
             _this.mouseOverlay.css({ cursor: "none" });
         } else if (_this.tool === "mouse") {
-            this.mouseOverlay.css({ cursor: "default" });
+            _this.mouseOverlay.css({ cursor: "default" });
+            _this.mouseOverlay.css({ cursor: _this.cursorURL ()});
         } else {
             //Line, Rec, Circle, Cutting
             _this.mouseOverlay.css({ cursor: "crosshair" });
         }
     },
+	cursorURL () {
+		return `url(/svg/mark?color=${encodeURIComponent (_this.drawcolor)}),default`;
+	}
 };
 
 function lanczosKernel(x) {

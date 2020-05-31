@@ -124,6 +124,8 @@ module.exports = {
                 "setTextboxPosition",
                 "setTextboxFontSize",
                 "setTextboxFontColor",
+				"tick",
+				"cross"
             ].includes(tool)
         ) {
             //Save all this actions

@@ -21,9 +21,13 @@
     <body>
         <!---Whiteboard container-->
         <div id="whiteboardContainer"></div>
+		
+		<!--Whiteboard title-->
+		<div id="whiteboardTitle">
+		</div>
 
         <!---Toolbar -!-->
-        <div id="toolbar" style="position: absolute; top: 10px; left: 10px;">
+        <div id="toolbar" style="position: absolute; bottom: 10px; left: 10px;">
             <div class="btn-group lockGroup">
                 <button
                     id="whiteboardLockBtn"
@@ -81,15 +85,19 @@
                     title="Drop a tick"
                     type="button"
                     class="whiteboard-tool"
-                >checktick-alt"></i>
+                >
+                    <!--<i class="fa fa-check"></i>-->
+					<img src="/svg/tick" width="16px" height="16px"/>
                 </button>
                 <button
-                    tool="times"
+                    tool="cross"
                     title="Drop a cross"
                     type="button"
                     class="whiteboard-tool"
                 >
-                    <i class="fa fa-cross"></i>
+                    <!--<i class="fa fa-close"></i>-->
+					<!--Life is too short to find out why above doesn't work-->
+					<img src="/svg/cross" width="16px" height="16px"/>
                 </button>
                 <button
                     tool="pen"

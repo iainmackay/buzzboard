@@ -37,6 +37,13 @@ button::-moz-focus-inner {
     border: 0;
 }
 
+#whiteboardTitle {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	font-size: x-large;
+}
+
 .whiteboard-edit-group.group-disabled {
     background: repeating-linear-gradient(
         45deg,
@@ -113,6 +120,7 @@ button {
 
 .textContainer {
 		overflow: hidden;
+		user-select: none;
 }
 
 .modalBtn {

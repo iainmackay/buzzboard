@@ -176,6 +176,13 @@ function initWhiteboard() {
 				windowWidthHeight: { w: $(window).width(), h: $(window).height() },
 			});
 		});
+		
+		// Whiteboard title
+		
+		$("#whiteboardTitle")
+			.text (title)
+			.attr ({"style": `color:${invitationColor}`})
+		;
 
 		/*----------------/
 		Whiteboard actions
@@ -295,14 +302,19 @@ function initWhiteboard() {
 		if (participantType !== "observer") {
 		
 			$(".whiteboard-tool").click(function () {
+				const activeNow = $(this).hasClass ("active");
 				$(".whiteboard-tool").removeClass("active");
-				$(this).addClass("active");
-				var activeTool = $(this).attr("tool");
-				whiteboard.setTool(activeTool);
-				if (activeTool == "mouse" || activeTool == "recSelect") {
-					$(".activeToolIcon").empty();
+				if (activeNow) {
+					whiteboard.setTool ();
 				} else {
-					$(".activeToolIcon").html($(this).html()); //Set Active icon the same as the button icon
+					$(this).addClass("active");
+					var activeTool = $(this).attr("tool");
+					whiteboard.setTool(activeTool);
+					if (activeTool == "mouse" || activeTool == "recSelect") {
+						$(".activeToolIcon").empty();
+					} else {
+						$(".activeToolIcon").html($(this).html()); //Set Active icon the same as the button icon
+					}
 				}
 			});
 			if (participantType === "participant") {
@@ -347,7 +359,7 @@ function initWhiteboard() {
 			$("#saveAsImageBtn").css({display: "none"});
 		}
 
-		if (participantType == "internal") {
+		if (false) {
 			// save image to json containing steps
 			$("#saveAsJSONBtn").click(function () {
 				var imgData = whiteboard.getImageDataJson();
@@ -401,7 +413,7 @@ function initWhiteboard() {
 			$("#shareWhiteboardBtn").css({display: "none"});
 		}
 
-		if (participantType === "internal") {
+		if (false) {
 			$("#displayWhiteboardInfoBtn").click(() => {
 				InfoService.toggleDisplayInfo();
 			});
@@ -428,20 +440,22 @@ function initWhiteboard() {
 		}
 
 		// load json to whiteboard
-		$("#myFile").on("change", function () {
-			var file = document.getElementById("myFile").files[0];
-			var reader = new FileReader();
-			reader.onload = function (e) {
-				try {
-					var j = JSON.parse(e.target.result);
-					whiteboard.loadJsonData(j);
-				} catch (e) {
-					showBasicAlert("File was not a valid JSON!");
-				}
-			};
-			reader.readAsText(file);
-			$(this).val("");
-		});
+		if (false) {
+			$("#myFile").on("change", function () {
+				var file = document.getElementById("myFile").files[0];
+				var reader = new FileReader();
+				reader.onload = function (e) {
+					try {
+						var j = JSON.parse(e.target.result);
+						whiteboard.loadJsonData(j);
+					} catch (e) {
+						showBasicAlert("File was not a valid JSON!");
+					}
+				};
+				reader.readAsText(file);
+				$(this).val("");
+			});
+		}
 
 		if (participantType !== "observer") {
 			// On thickness slider change
@@ -651,6 +665,7 @@ function initWhiteboard() {
 			ReadOnlyService.activateReadOnlyMode();
 			InfoService.hideInfo();
 		}
+		InfoService.hideInfo ();
 
 		// Expose the whiteboard in all its glory
 		enableHtml ();
