@@ -1090,7 +1090,7 @@ const whiteboard = {
         }
     },
     handleEventsAndData: function (content, isNewData, doneCallback) {
-		console.log ("handleEventsAndData", isNewData, content);
+		//console.log ("handleEventsAndData", isNewData, content);
         var _this = this;
         var tool = content["t"];
         var data = content["d"];
@@ -1098,92 +1098,121 @@ const whiteboard = {
         var username = content["u"];
         var thickness = content["th"];
 		var senderParticipantType = content["p"];
-        window.requestAnimationFrame(function () {
-            if (tool === "line" || tool === "pen") {
-                if (data.length == 4) {
-                    //Only used for old json imports
-                    _this.drawPenLine(data[0], data[1], data[2], data[3], color, thickness);
-                } else {
-                    _this.drawPenSmoothLine(data, color, thickness);
-                }
-			} else if (tool === "tick" || tool === "cross") {
-				const topLeftX = data [0] - thickness*2;
-				const topLeftY = data [1] - thickness*2;
-				const url = `/svg/${tool}?color=${encodeURIComponent (color)}`;
-				_this.drawImgToCanvas (url, thickness*4, thickness*4, topLeftX, topLeftY);
-            } else if (tool === "rect") {
-                _this.drawRec(data[0], data[1], data[2], data[3], color, thickness);
-            } else if (tool === "circle") {
-                _this.drawCircle(data[0], data[1], data[2], color, thickness);
-            } else if (tool === "eraser") {
-                _this.drawEraserLine(data[0], data[1], data[2], data[3], thickness);
-            } else if (tool === "eraseRec") {
-                _this.eraseRec(data[0], data[1], data[2], data[3]);
-            } else if (tool === "recSelect") {
-                _this.dragCanvasRectContent(data[0], data[1], data[2], data[3], data[4], data[5]);
-            } else if (tool === "addImgBG") {
-                if (content["draw"] == "1") {
-                    _this.drawImgToCanvas(
-                        content["url"],
-                        data[0],
-                        data[1],
-                        data[2],
-                        data[3],
-                        doneCallback
-                    );
-                } else {
-                    _this.drawImgToBackground(content["url"], data[0], data[1], data[2], data[3]);
-                }
-            } else if (tool === "addTextBox") {
-                _this.addTextBox(data[0], data[1], data[2], data[3], data[4]);
-            } else if (tool === "setTextboxText") {
-                _this.setTextboxText(data[0], data[1]);
-            } else if (tool === "removeTextbox") {
-                _this.removeTextbox(data[0]);
-            } else if (tool === "setTextboxPosition") {
-                _this.setTextboxPosition(data[0], data[1], data[2]);
-            } else if (tool === "setTextboxFontSize") {
-                _this.setTextboxFontSize(data[0], data[1]);
-            } else if (tool === "setTextboxFontColor") {
-                _this.setTextboxFontColor(data[0], data[1]);
-            } else if (tool === "clear") {
-                _this.canvas.height = _this.canvas.height;
-                _this.imgContainer.empty();
-                _this.textContainer.empty();
-                _this.drawBuffer = [];
-                _this.undoBuffer = [];
-                _this.drawId = 0;
-            } else if (tool === "mouse") {
-                if (content["event"] === "move") {
-					const uuid = _this.uuidOfUser (username);
-                    if (_this.cursorContainer.find("." + uuid).length >= 1) {
-                        _this.cursorContainer
-                            .find("." + uuid)
-                            .css({ left: data[0] + "px", top: data[1] - 15 + "px" });
-                    } else {
-                        _this.cursorContainer.append(
-                            '<div style="font-size:0.8em; padding-left:2px; padding-right:2px; background:gray; color:white; border-radius:3px; position:absolute; left:' +
-                                data[0] +
-                                "px; top:" +
-                                (data[1] - 151) +
-                                'px;" class="userbadge ' +
-                                uuid +
-                                '">' +
-                                '<div style="width:4px; height:4px; background:gray; position:absolute; top:13px; (usern left:-2px; border-radius:50%;"></div>' +
-                                escapeHTML (username) +
-                                "</div>"
-                        );
-                    }
-                } else {
-                    _this.cursorContainer.find("." + _this.uuidOfUser (username)).remove();
-                }
-            } else if (tool === "undo") {
-                _this.undoWhiteboard(username);
-            } else if (tool === "redo") {
-                _this.redoWhiteboard(username);
-            }
-        });
-
+		// Only show my own or moderator/facilitator submissions
+		if (username === _this.settings.username ||
+		    senderParticipantType === "internal" ||
+			_this.settings.participantType !== "participant") {
+			window.requestAnimationFrame(function () {
+				if (tool === "line" || tool === "pen") {
+					if (data.length == 4) {
+						//Only used for old json imports
+						_this.drawPenLine(data[0], data[1], data[2], data[3], color, thickness);
+					} else {
+						_this.drawPenSmoothLine(data, color, thickness);
+					}
+				} else if (tool === "tick" || tool === "cross") {
+					const topLeftX = data [0] - thickness*2;
+					const topLeftY = data [1] - thickness*2;
+					const url = `/svg/${tool}?color=${encodeURIComponent (color)}`;
+					_this.drawImgToCanvas (url, thickness*4, thickness*4, topLeftX, topLeftY);
+				} else if (tool === "rect") {
+					_this.drawRec(data[0], data[1], data[2], data[3], color, thickness);
+				} else if (tool === "circle") {
+					_this.drawCircle(data[0], data[1], data[2], color, thickness);
+				} else if (tool === "eraser") {
+					_this.drawEraserLine(data[0], data[1], data[2], data[3], thickness);
+				} else if (tool === "eraseRec") {
+					_this.eraseRec(data[0], data[1], data[2], data[3]);
+				} else if (tool === "recSelect") {
+					_this.dragCanvasRectContent(data[0], data[1], data[2], data[3], data[4], data[5]);
+				} else if (tool === "addImgBG") {
+					if (content["draw"] == "1") {
+						_this.drawImgToCanvas(
+							content["url"],
+							data[0],
+							data[1],
+							data[2],
+							data[3],
+							doneCallback
+						);
+					} else {
+						_this.drawImgToBackground(content["url"], data[0], data[1], data[2], data[3]);
+					}
+				} else if (tool === "addTextBox") {
+					_this.addTextBox(data[0], data[1], data[2], data[3], data[4]);
+				} else if (tool === "setTextboxText") {
+					_this.setTextboxText(data[0], data[1]);
+				} else if (tool === "removeTextbox") {
+					_this.removeTextbox(data[0]);
+				} else if (tool === "setTextboxPosition") {
+					_this.setTextboxPosition(data[0], data[1], data[2]);
+				} else if (tool === "setTextboxFontSize") {
+					_this.setTextboxFontSize(data[0], data[1]);
+				} else if (tool === "setTextboxFontColor") {
+					_this.setTextboxFontColor(data[0], data[1]);
+				} else if (tool === "clear") {
+					_this.canvas.height = _this.canvas.height;
+					_this.imgContainer.empty();
+					_this.textContainer.empty();
+					_this.drawBuffer = [];
+					_this.undoBuffer = [];
+					_this.drawId = 0;
+				} else if (tool === "mouse") {
+					if (content["event"] === "move") {
+						const uuid = _this.uuidOfUser (username);
+						if (_this.cursorContainer.find("." + uuid).length >= 1) {
+							_this.cursorContainer
+								.find("." + uuid)
+								.css({ left: data[0] + "px", top: data[1] - 15 + "px" });
+						} else {
+							const cursorHTML = `<div 
+								style="font-size:0.8em;
+									padding-left:2px;
+									padding-right:2px;
+									background:gray;
+									color:${color};
+									border-radius:3px;
+									position:absolute;
+									left:${data[0]}px; 
+									top:${(data[1] - 151)}px"
+								class="userbadge ${uuid}"
+								>
+									<div
+										style="width:4px;
+											height:4px;
+											background:gray;
+											position:absolute;
+											top:13px;
+											left:-2px;
+											border-radius:50%;
+											border-color: ${color};"
+									>${escapeHTML (username)}
+									</div>
+								</div>`;
+							console.log ("Cursor HTML", cursorHTML);
+							_this.cursorContainer.append (cursorHTML);
+							/* _this.cursorContainer.append(
+								'<div style="font-size:0.8em; padding-left:2px; padding-right:2px; background:gray; color:white; border-radius:3px; position:absolute; left:' +
+									data[0] +
+									"px; top:" +
+									(data[1] - 151) +
+									'px;" class="userbadge ' +
+									uuid +
+									'">' +
+									`<div style="width:4px; height:4px; background:gray; position:absolute; top:13px; left:-2px; border-radius:50%; border-color: ${color}; color: ${color}">${escapeHTML (username)}</div>` +
+									"</div>"
+							); */
+						}
+					} else {
+						_this.cursorContainer.find("." + _this.uuidOfUser (username)).remove();
+					}
+				} else if (tool === "undo") {
+					_this.undoWhiteboard(username);
+				} else if (tool === "redo") {
+					_this.redoWhiteboard(username);
+				}
+			});
+		}
         if (
             isNewData &&
             [
@@ -1329,6 +1358,7 @@ const whiteboard = {
         var _this = this;
         content["wid"] = _this.settings.whiteboardId;
         content["drawId"] = _this.drawId;
+		content ["c"] = _this.drawcolor;
 
         var tool = content["t"];
         if (_this.settings.sendFunction) {
