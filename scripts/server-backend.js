@@ -77,7 +77,7 @@ function startBackendServer(port) {
         });
 
         form.on("error", function (err) {
-            console.log("File uplaod Error!");
+            console.log("File upload Error!");
         });
 
         form.on("end", function () {
@@ -111,7 +111,6 @@ function startBackendServer(port) {
 	});
 
     async function progressUploadFormData(formData) {
-        console.log("Progress new Form Data");
         var fields = escapeAllContentStrings(formData.fields);
         var whiteboardId = fields["whiteboardId"];
 

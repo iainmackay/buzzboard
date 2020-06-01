@@ -17,7 +17,6 @@ async function saveBoard (wid) {
 
 function saveTimer () {
 		// if any changes since last save, upload the board to webdav
-		console.log ("saveTimer invoked");
 		for (const wid in savedBoards) {
 			const board = savedBoards [wid];
 			const count = eventCounts [wid];
@@ -43,11 +42,10 @@ module.exports = {
     handleEventsAndData: function (content) {
         var tool = content["t"]; //Tool used
         var wid = content["wid"]; //whiteboard ID
- 		if (tool !== "cursor") {
-			console.log ("Whiteboard change event", content);
+ 		if (!["cursor", "mouse"].includes (tool)) {
+			//console.log ("Whiteboard change event", content);
 			if (savedBoards[wid]) {
 				eventCounts [wid] += 1;
-				console.log ("New event count for", wid, eventCounts [wid]);
 			}
 		}
         var username = content["username"];

@@ -58,7 +58,7 @@ const whiteboard = {
 		if (!this.useruuids [u]) {
 			this.useruuids [u] = generateUUID ()
 		}
-		return useruuids [u]
+		return this.useruuids [u]
 	},
     lastPointerSentTime: 0,
     /**
@@ -148,7 +148,9 @@ const whiteboard = {
 
             const currentPos = Point.fromEvent(e);
 
-            if (_this.tool === "pen") {
+			if (_this.tool === "mouse") {
+				_this.mouseOverlay.css({ cursor: _this.cursorURL ()});
+            } else if (_this.tool === "pen") {
                 _this.penSmoothLastCoords = [
                     currentPos.x,
                     currentPos.y,
@@ -257,7 +259,14 @@ const whiteboard = {
                 });
             }
 
-            if (_this.tool === "line") {
+			if (_this.tool === "mouse") {
+				_this.mouseOverlay.css({ cursor: "default"});
+                _this.sendFunction({
+                    t: _this.tool,
+                    d: [currentPos.x, currentPos.y],
+					event: "up"
+				});
+			} else if (_this.tool === "line") {
                 if (_this.pressedKeys.shift) {
                     currentPos = _this.getRoundedAngles(currentPos);
                 }
@@ -284,7 +293,6 @@ const whiteboard = {
 				const topLeftX = currentPos.x - _this.thickness*2;
 				const topLeftY = currentPos.y - _this.thickness*2;
 				const url = `/svg/${_this.tool}?color=${encodeURIComponent (_this.drawcolor)||'black'}`;
-				console.log ("Drawing icon", url);
 				_this.drawImgToCanvas (url, _this.thickness*4, _this.thickness*4, topLeftX, topLeftY);
                 _this.sendFunction({
                     t: _this.tool,
@@ -481,6 +489,14 @@ const whiteboard = {
             if (_this.drawFlag) {
                 if (_this.tool === "pen") {
                     _this.pushPointSmoothPen(currentPos.x, currentPos.y);
+				} else if (_this.tool === "mouse") {
+					ThrottlingService.throttle(currentPos, () => {
+						_this.sendFunction({
+							t: _this.tool,
+							event: "move",
+							d: [currentPos.x, currentPos.y]
+						});
+					});
                 } else if (_this.tool === "eraser") {
                     _this.drawEraserLine(
                         currentPos.x,
@@ -552,7 +568,7 @@ const whiteboard = {
             _this.prevPos = currentPos;
         });
 
-        ThrottlingService.throttle(currentPos, () => {
+        /* ThrottlingService.throttle(currentPos, () => {
             _this.lastPointerPosition = currentPos;
             _this.sendFunction({
                 t: "cursor",
@@ -560,7 +576,7 @@ const whiteboard = {
                 d: [currentPos.x, currentPos.y],
                 username: _this.settings.username,
             });
-        });
+        }); */
     },
     triggerMouseOver: function () {
         var _this = this;
@@ -884,8 +900,7 @@ const whiteboard = {
                 _this.sendFunction({
                     t: "cursor",
                     event: "move",
-                    d: [newPointerPosition.x, newPointerPosition.y],
-                    username: _this.settings.username,
+                    d: [newPointerPosition.x, newPointerPosition.y]
                 });
             });
         });
@@ -909,7 +924,6 @@ const whiteboard = {
         });
         textBox.find(".textContent").on("input", function () {
             // var text = btoa(unescape(encodeURIComponent($(this).html()))); //Get html and make encode base64 also take care of the charset
-			console.log ("Text input", $(this).html ());
             _this.sendFunction({ t: "setTextboxText", d: [txId, $(this).html()] });
         });
         textBox.find(".removeIcon").click(function (e) {
@@ -968,12 +982,12 @@ const whiteboard = {
             username = _this.settings.username;
         }
         for (var i = _this.drawBuffer.length - 1; i >= 0; i--) {
-            if (_this.drawBuffer[i]["username"] == username) {
+            if (_this.drawBuffer[i]["u"] == username) {
                 var drawId = _this.drawBuffer[i]["drawId"];
                 for (var i = _this.drawBuffer.length - 1; i >= 0; i--) {
                     if (
                         _this.drawBuffer[i]["drawId"] == drawId &&
-                        _this.drawBuffer[i]["username"] == username
+                        _this.drawBuffer[i]["u"] == username
                     ) {
                         _this.undoBuffer.push(_this.drawBuffer[i]);
                         _this.drawBuffer.splice(i, 1);
@@ -998,12 +1012,12 @@ const whiteboard = {
             username = _this.settings.username;
         }
         for (var i = _this.undoBuffer.length - 1; i >= 0; i--) {
-            if (_this.undoBuffer[i]["username"] == username) {
+            if (_this.undoBuffer[i]["u"] == username) {
                 var drawId = _this.undoBuffer[i]["drawId"];
                 for (var i = _this.undoBuffer.length - 1; i >= 0; i--) {
                     if (
                         _this.undoBuffer[i]["drawId"] == drawId &&
-                        _this.undoBuffer[i]["username"] == username
+                        _this.undoBuffer[i]["u"] == username
                     ) {
                         _this.drawBuffer.push(_this.undoBuffer[i]);
                         _this.undoBuffer.splice(i, 1);
@@ -1076,12 +1090,14 @@ const whiteboard = {
         }
     },
     handleEventsAndData: function (content, isNewData, doneCallback) {
+		console.log ("handleEventsAndData", isNewData, content);
         var _this = this;
         var tool = content["t"];
         var data = content["d"];
         var color = content["c"];
-        var username = content["username"];
+        var username = content["u"];
         var thickness = content["th"];
+		var senderParticipantType = content["p"];
         window.requestAnimationFrame(function () {
             if (tool === "line" || tool === "pen") {
                 if (data.length == 4) {
@@ -1094,7 +1110,6 @@ const whiteboard = {
 				const topLeftX = data [0] - thickness*2;
 				const topLeftY = data [1] - thickness*2;
 				const url = `/svg/${tool}?color=${encodeURIComponent (color)}`;
-				console.log ("Drawing icon", url);
 				_this.drawImgToCanvas (url, thickness*4, thickness*4, topLeftX, topLeftY);
             } else if (tool === "rect") {
                 _this.drawRec(data[0], data[1], data[2], data[3], color, thickness);
@@ -1138,9 +1153,9 @@ const whiteboard = {
                 _this.drawBuffer = [];
                 _this.undoBuffer = [];
                 _this.drawId = 0;
-            } else if (tool === "cursor" && _this.settings) {
+            } else if (tool === "mouse") {
                 if (content["event"] === "move") {
-					const uuid = userUUID (content["username"]);
+					const uuid = _this.uuidOfUser (username);
                     if (_this.cursorContainer.find("." + uuid).length >= 1) {
                         _this.cursorContainer
                             .find("." + uuid)
@@ -1155,12 +1170,12 @@ const whiteboard = {
                                 uuid +
                                 '">' +
                                 '<div style="width:4px; height:4px; background:gray; position:absolute; top:13px; (usern left:-2px; border-radius:50%;"></div>' +
-                                escapeHTML (content.username) +
+                                escapeHTML (username) +
                                 "</div>"
                         );
                     }
                 } else {
-                    _this.cursorContainer.find("." + userUUID (content["username"])).remove();
+                    _this.cursorContainer.find("." + _this.uuidOfUser (username)).remove();
                 }
             } else if (tool === "undo") {
                 _this.undoWhiteboard(username);
@@ -1191,9 +1206,7 @@ const whiteboard = {
             ].includes(tool)
         ) {
             content["drawId"] = content["drawId"] ? content["drawId"] : _this.drawId;
-            content["username"] = content["username"]
-                ? content["username"]
-                : _this.settings.username;
+            content["u"] = content["u"] || _this.settings.username
             _this.drawBuffer.push(content);
         }
     },
@@ -1243,8 +1256,6 @@ const whiteboard = {
 
             html2canvas(this, { backgroundColor: "rgba(0, 0, 0, 0)", removeContainer: true }).then(
                 function (canvas) {
-                    console.log("canvas", canvas);
-
                     destCtx.drawImage(canvas, left, top);
                     textBoxCnt--;
                     checkForReturn();
@@ -1264,7 +1275,7 @@ const whiteboard = {
         var sendObj = [];
         for (var i = 0; i < this.drawBuffer.length; i++) {
             sendObj.push(JSON.parse(JSON.stringify(this.drawBuffer[i])));
-            delete sendObj[i]["username"];
+            delete sendObj[i]["u"];
             delete sendObj[i]["wid"];
             delete sendObj[i]["drawId"];
         }
@@ -1274,7 +1285,7 @@ const whiteboard = {
         var _this = this;
         _this.loadDataInSteps(content, true, function (stepData) {
             if (
-                stepData["username"] == _this.settings.username &&
+                stepData["u"] == _this.settings.username &&
                 _this.drawId < stepData["drawId"]
             ) {
                 _this.drawId = stepData["drawId"] + 1;
@@ -1317,7 +1328,6 @@ const whiteboard = {
         //Sends every draw to server
         var _this = this;
         content["wid"] = _this.settings.whiteboardId;
-        content["username"] = _this.settings.username;
         content["drawId"] = _this.drawId;
 
         var tool = content["t"];
@@ -1356,14 +1366,14 @@ const whiteboard = {
             _this.mouseOverlay.css({ cursor: "none" });
         } else if (_this.tool === "mouse") {
             _this.mouseOverlay.css({ cursor: "default" });
-            _this.mouseOverlay.css({ cursor: _this.cursorURL ()});
+            //_this.mouseOverlay.css({ cursor: _this.cursorURL ()});
         } else {
             //Line, Rec, Circle, Cutting
             _this.mouseOverlay.css({ cursor: "crosshair" });
         }
     },
 	cursorURL () {
-		return `url(/svg/mark?color=${encodeURIComponent (_this.drawcolor)}),default`;
+		return `url(/svg/mark?color=${encodeURIComponent (this.drawcolor)}&width=32&height=32) 16 16,default`;
 	}
 };
 
