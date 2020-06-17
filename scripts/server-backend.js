@@ -45,15 +45,27 @@ function startBackendServer(port) {
 				res.end ();
 			})
 			.catch ((e) => {
-				if (e.status == 404) {
+				const response = e.response;
+				if (response.status == 404) {
 					console.log ("First open of board", wid);
 				} else {
-					console.log ("Error loading board", e);
+					console.log ("Error loading board", response);
 				}
 				res.send ([]);
 				res.end ();
 			})
 			;
+        } else {
+            res.status(401); //Unauthorized
+            res.end();
+        }
+    });
+
+    app.post (URLPrefix + "/api/deletewhiteboard", function (req, res) {
+        var wid = req["query"]["wid"];
+        var at = req["query"]["at"]; //accesstoken
+        if (accessToken === "" || accessToken == at) {
+			s_whiteboard.delete (wid)
         } else {
             res.status(401); //Unauthorized
             res.end();
@@ -106,7 +118,7 @@ function startBackendServer(port) {
         form.parse(req);
     });
 	app.all ("*", (req, res) => {
-		console.log ("Unmatched request", req.url);
+		console.log ("Unmatched request", req.method, URLPrefix, req.url);
 		res.status (400);
 	});
 

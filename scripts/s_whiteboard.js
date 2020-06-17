@@ -15,24 +15,28 @@ async function saveBoard (wid) {
 			JSON.stringify (board));
 };
 
+async function saveBoardIfNecessary (wid) {
+	const board = savedBoards [wid];
+	const count = eventCounts [wid];
+	const lastCheckpoint = lastCheckpoints [wid];
+	//console.log ("Board", wid, savedBoards [wid].length, count, lastCheckpoint);
+	if (count > lastCheckpoint) {
+		saveBoard (wid)
+		.then (() => {
+			lastCheckpoints [wid] = count;
+			//console.log (`Checkpointed board ${wid} at change ${count}`);
+		})
+		.catch ((err) => {
+			console.log (`Failed to checkpoint board ${wid} at change ${count}: ${err}`);
+		});
+		;
+	}
+}
+
 function saveTimer () {
 		// if any changes since last save, upload the board to webdav
 		for (const wid in savedBoards) {
-			const board = savedBoards [wid];
-			const count = eventCounts [wid];
-			const lastCheckpoint = lastCheckpoints [wid];
-			//console.log ("Board", wid, savedBoards [wid].length, count, lastCheckpoint);
-			if (count > lastCheckpoint) {
-				saveBoard (wid)
-				.then (() => {
-					lastCheckpoints [wid] = count;
-					//console.log (`Checkpointed board ${wid} at change ${count}`);
-				})
-				.catch ((err) => {
-					console.log (`Failed to checkpoint board ${wid} at change ${count}: ${err}`);
-				});
-				;
-			}
+			saveBoardIfNecessary (wid)
 		}
 		saveTimeout = setTimeout (saveTimer, 60000);
 }
@@ -126,11 +130,11 @@ module.exports = {
 				"cross"
             ].includes(tool)
         ) {
-            //Save all this actions
+            //Save all these actions
             if (!savedBoards[wid]) {
                 savedBoards[wid] = [];
             }
-            delete content["wid"]; //Delete id from content so we don't store it twice
+            delete content["wid"]; //Delete id from content so we don't store it redundantly
             if (tool === "setTextboxText") {
                 for (var i = savedBoards[wid].length - 1; i >= 0; i--) {
                     //Remove old textbox text -> dont store it twice
@@ -162,6 +166,15 @@ module.exports = {
 			return savedBoards [wid];
 		}
     },
+	// Delete any cached version of a board, prior to deleting board folder
+	delete: function (wid) {
+		delete savedBoards [wid];
+		delete savedWebdavs [wid];
+		delete lastCheckpoints [wid];
+		delete eventCounts [wid];
+		delete savedUndos [wid];
+		console.log ("Cached board deleted:", wid);
+	},
 	setWebdav: function (wid, client, path) {
 		savedWebdavs [wid] = {client, path}
 	},
