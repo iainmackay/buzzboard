@@ -60,13 +60,17 @@ class InfoService {
      * @param {{w: number, h: number}} smallestScreenResolution
      */
     updateInfoFromServer({ nbConnectedUsers, smallestScreenResolution = undefined }) {
-        if (this.#nbConnectedUsers !== nbConnectedUsers) {
-            // Refresh config service parameters on nb connected user change
-            ConfigService.refreshUserCountDependant(nbConnectedUsers);
-        }
-        this.#nbConnectedUsers = nbConnectedUsers;
-        if (smallestScreenResolution) {
-            this.#smallestScreenResolution = smallestScreenResolution;
+        if (ConfigService.configFromServer) {
+            if (this.#nbConnectedUsers !== nbConnectedUsers) {
+                // Refresh config service parameters on nb connected user change
+                ConfigService.refreshUserCountDependant(nbConnectedUsers);
+            }
+            this.#nbConnectedUsers = nbConnectedUsers;
+            if (smallestScreenResolution) {
+                this.#smallestScreenResolution = smallestScreenResolution;
+            }
+        } else {
+            console.log("Configuration update before initialisation");
         }
     }
 

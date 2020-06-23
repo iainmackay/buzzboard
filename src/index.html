@@ -4,27 +4,26 @@
         <title>Whiteboard</title>
         <meta charset="utf-8" />
         <link rel="icon" type="image/vnd.microsoft.icon" href="favicon.ico" />
-		<script type="text/javascript">
-			// Avoid FOUC
-			var __html = document.getElementsByTagName ("html") [0];
-			__html.style.display="none";
-			function enableHtml () {
-				__html.style.removeProperty ('display');
-			}
-			// Actually remove it in main.js after its initialisation
-			/* document.addEventListener ("DOMContentLoaded", (event) => {
+        <script type="text/javascript">
+            // Avoid FOUC
+            var __html = document.getElementsByTagName("html")[0];
+            __html.style.display = "none";
+            function enableHtml() {
+                __html.style.removeProperty("display");
+            }
+            // Actually remove it in main.js after its initialisation
+            /* document.addEventListener ("DOMContentLoaded", (event) => {
 				enableHtml ();
 			}); */
-		</script>
+        </script>
     </head>
 
     <body>
         <!---Whiteboard container-->
         <div id="whiteboardContainer"></div>
-		
-		<!--Whiteboard title-->
-		<div id="whiteboardTitle">
-		</div>
+
+        <!--Whiteboard title-->
+        <div id="whiteboardTitle"></div>
 
         <!---Toolbar -!-->
         <div id="toolbar" style="position: absolute; bottom: 10px; left: 10px;">
@@ -64,11 +63,11 @@
 
             <div class="btn-group whiteboard-edit-group">
                 <button
-					tool="mouse"
-					title="Take the mouse"
-					type="button"
-					class="whiteboard-tool mouse-tool"
-				>
+                    tool="mouse"
+                    title="Take the mouse"
+                    type="button"
+                    class="whiteboard-tool mouse-tool"
+                >
                     <i class="fa fa-mouse-pointer"></i>
                 </button>
                 <button
@@ -80,31 +79,16 @@
                 >
                     <img src="./images/dottedRec.png" />
                 </button>
-                <button
-                    tool="tick"
-                    title="Drop a tick"
-                    type="button"
-                    class="whiteboard-tool"
-                >
+                <button tool="tick" title="Drop a tick" type="button" class="whiteboard-tool">
                     <!--<i class="fa fa-check"></i>-->
-					<img src="/svg/tick" width="16px" height="16px"/>
+                    <img src="/svg/tick" width="16px" height="16px" />
                 </button>
-                <button
-                    tool="cross"
-                    title="Drop a cross"
-                    type="button"
-                    class="whiteboard-tool"
-                >
+                <button tool="cross" title="Drop a cross" type="button" class="whiteboard-tool">
                     <!--<i class="fa fa-close"></i>-->
-					<!--Life is too short to find out why above doesn't work-->
-					<img src="/svg/cross" width="16px" height="16px"/>
+                    <!--Life is too short to find out why above doesn't work-->
+                    <img src="/svg/cross" width="16px" height="16px" />
                 </button>
-                <button
-                    tool="pen"
-                    title="Take the pen"
-                    type="button"
-                    class="whiteboard-tool"
-                >
+                <button tool="pen" title="Take the pen" type="button" class="whiteboard-tool">
                     <i class="fa fa-pencil-alt"></i>
                 </button>
                 <button
@@ -125,9 +109,12 @@
                 <button tool="text" title="write text" type="button" class="whiteboard-tool">
                     <i class="fas fa-font"></i>
                 </button>
-                <button tool="eraser" title="take the eraser" type="button"
-					class="whiteboard-tool eraser-tool"
-				>
+                <button
+                    tool="eraser"
+                    title="take the eraser"
+                    type="button"
+                    class="whiteboard-tool eraser-tool"
+                >
                     <i class="fa fa-eraser"></i>
                 </button>
             </div>
@@ -155,9 +142,9 @@
                         id="whiteboardThicknessSlider"
                         style="position: absolute; left: 9px; width: 130px; top: 15px;"
                         type="range"
-                        min="1"
-                        max="50"
-                        value="3"
+                        min="2"
+                        max="10"
+                        value="4"
                     />
                     <div
                         id="whiteboardColorpicker"
