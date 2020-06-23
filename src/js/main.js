@@ -54,28 +54,28 @@ function main() {
             console.log("whiteboardConfig", serverResponse);
             ConfigService.initFromServer(serverResponse);
             // Init whiteboard only when we have the config from the server
-            initWhiteboard();
+            initWhiteboard(() => {
+                signaling_socket.on("whiteboardInfoUpdate", (info) => {
+                    InfoService.updateInfoFromServer(info);
+                    whiteboard.updateSmallestScreenResolution();
+                });
 
-            signaling_socket.on("whiteboardInfoUpdate", (info) => {
-                InfoService.updateInfoFromServer(info);
-                whiteboard.updateSmallestScreenResolution();
-            });
+                signaling_socket.on("drawToWhiteboard", function (content) {
+                    whiteboard.handleEventsAndData(content, true);
+                    InfoService.incrementNbMessagesReceived();
+                });
 
-            signaling_socket.on("drawToWhiteboard", function (content) {
-                whiteboard.handleEventsAndData(content, true);
-                InfoService.incrementNbMessagesReceived();
-            });
+                signaling_socket.on("refreshUserBadges", function () {
+                    whiteboard.refreshUserBadges();
+                });
 
-            signaling_socket.on("refreshUserBadges", function () {
-                whiteboard.refreshUserBadges();
-            });
-
-            let accessDenied = false;
-            signaling_socket.on("wrongAccessToken", function () {
-                if (!accessDenied) {
-                    accessDenied = true;
-                    showBasicAlert("Access denied! Wrong accessToken!");
-                }
+                let accessDenied = false;
+                signaling_socket.on("wrongAccessToken", function () {
+                    if (!accessDenied) {
+                        accessDenied = true;
+                        showBasicAlert("Access denied! Wrong accessToken!");
+                    }
+                });
             });
         });
         signaling_socket.emit("joinWhiteboard", {
@@ -134,7 +134,7 @@ function showBasicAlert(html, newOptions) {
     }
 }
 
-function initWhiteboard() {
+function initWhiteboard(onReady) {
     $(document).ready(function () {
         // by default set in readOnly mode
         ReadOnlyService.activateReadOnlyMode();
@@ -667,6 +667,7 @@ function initWhiteboard() {
 
         // Expose the whiteboard in all its glory
         enableHtml();
+        if (onReady) onReady();
     });
 
     //Prevent site from changing tab on drag&drop
@@ -703,7 +704,8 @@ function initWhiteboard() {
                 console.log("Image uploaded!");
             },
             error: function (err) {
-                showBasicAlert("Failed to upload frame: " + JSON.stringify(err));
+                console.log("Failed to upload image to", URL, err);
+                showBasicAlert("Failed to upload to server");
             },
         });
     }

@@ -41,7 +41,8 @@
     "jsdom": "^14.0.0",
     "pdfjs-dist": "^2.3.200",
     "socket.io": "2.*",
-    "webdav": "^2.8.0"
+    "webdav": "^2.8.0",
+    "ws": "^7.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",

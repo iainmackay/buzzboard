@@ -1008,8 +1008,7 @@ const whiteboard = {
     setTextboxText(txId, text) {
         $("#" + txId)
             .find(".textContent")
-            .html(text);
-        //.html(decodeURIComponent(escape(atob(text)))); //Set decoded base64 as html
+            .text(text);
     },
     removeTextbox(txId) {
         $("#" + txId).remove();
