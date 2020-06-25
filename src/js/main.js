@@ -80,7 +80,7 @@ function setupSocket() {
       };
 
       handlers["drawToWhiteboard"] = (content) => {
-        console.log("drawToWhiteboard handler", content);
+        //console.log("drawToWhiteboard handler", content);
         whiteboard.handleEventsAndData(content, true);
         InfoService.incrementNbMessagesReceived();
       };
@@ -96,12 +96,12 @@ function setupSocket() {
           showBasicAlert("Access denied! Wrong accessToken!");
         }
       };
-      console.log("All whiteboard handlers set up");
+      //console.log("All whiteboard handlers set up");
     });
   };
 
   signaling_socket.onmessage = (event) => {
-    console.log("Websocket message received", event);
+    //console.log("Websocket message received", event);
     receiveMessage(signaling_socket, event.data);
   };
 
@@ -116,7 +116,7 @@ function setupSocket() {
         windowWidthHeight: { w: $(window).width(), h: $(window).height() },
       })
     );
-    console.log("Join whiteboard message sent");
+    //console.log("Join whiteboard message sent");
   };
 }
 
@@ -181,7 +181,7 @@ function initWhiteboard(onReady) {
     participantType: participantType,
     sendFunction: function (content) {
       if (ReadOnlyService.readOnlyActive) return;
-      console.log("Sending message", content);
+      //console.log("Sending message", content);
       //ADD IN LATER THROUGH CONFIG
       // if (content.t === 'cursor') {
       //	 if (whiteboard.drawFlag) return;

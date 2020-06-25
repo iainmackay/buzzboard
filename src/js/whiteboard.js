@@ -870,7 +870,7 @@ const whiteboard = {
     );
   },
   addTextBox(textcolor, fontsize, left, top, txId, newLocalBox, isMyBox) {
-    console.log(`Adding text box, local: ${newLocalBox} mine: ${isMyBox}`);
+    //console.log(`Adding text box, local: ${newLocalBox} mine: ${isMyBox}`);
     var _this = this;
     var textBox = $(
       '<div id="' +
@@ -956,7 +956,7 @@ const whiteboard = {
         return false;
       });
       if (newLocalBox) {
-        console.log("Focusing to new box");
+        //console.log("Focusing to new box");
         textBox.find(".textContent").focus();
       }
       if (this.tool === "text") {
@@ -1235,7 +1235,7 @@ const whiteboard = {
 									>${escapeHTML(username)}
 									</div>
 								</div>`;
-              console.log("Cursor HTML", cursorHTML);
+              //console.log("Cursor HTML", cursorHTML);
               _this.cursorContainer.append(cursorHTML);
               /* _this.cursorContainer.append(
 								'<div style="font-size:0.8em; padding-left:2px; padding-right:2px; background:gray; color:white; border-radius:3px; position:absolute; left:' +
@@ -1429,7 +1429,7 @@ const whiteboard = {
     }
     let styleObject = { cursor: cursor };
     _this.mouseOverlay.css(styleObject);
-    console.log("Mouse cursor set as", cursor);
+    //console.log("Mouse cursor set as", cursor);
   },
   cursorURL() {
     return `url(/svg/mark?color=${encodeURIComponent(
