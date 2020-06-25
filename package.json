@@ -71,7 +71,7 @@
     "vanilla-picker": "^2.10.1",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3",
+    "webpack-dev-server": "^3.11.0",
     "webpack-merge": "^4.2.2"
   },
   "author": "Cracker0dks",
@@ -98,5 +98,9 @@
         "@babel/plugin-proposal-class-properties"
       ]
     ]
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
   }
 }
