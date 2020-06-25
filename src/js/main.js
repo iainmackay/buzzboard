@@ -53,20 +53,15 @@ function setupSocket() {
     console.log("Error connecting to server", event);
     setTimeout(setupSocket, 5000);
     showBasicAlert("Couldn't connect to server. Click OK to attempt reconnection.", {
-      onOkClick: () => {
-        signaling_socket = null;
-        setTimeout(setupSocket, 5000);
-      },
+      noOK: true,
     });
   };
 
   signaling_socket.onclose = (event) => {
     console.log("Connection to server closed", event);
-    showBasicAlert("Connection to server lost. Click OK to attempt reconnection.", {
-      onOkClick: () => {
-        signaling_socket = null;
-        setTimeout(setupSocket, 5000);
-      },
+    signaling_socket = null;
+    showBasicAlert("Connection to server lost. Refresh your browser page to retry.", {
+      noOK: true,
     });
   };
   handlers["whiteboardConfig"] = (serverResponse) => {
@@ -132,6 +127,7 @@ function showBasicAlert(html, newOptions) {
       headercolor: "#d25d5d",
       hideAfter: false,
       onOkClick: false,
+      noOK: false,
     },
     newOptions
   );
@@ -144,9 +140,12 @@ function showBasicAlert(html, newOptions) {
       options["header"] +
       '<div style="float: right; margin-right: 4px; color: #373737; cursor: pointer;" class="closeAlert">x</div></div>' +
       '<div style="padding: 10px;" class="htmlcontent"></div>' +
-      '<div style="height: 20px; padding: 10px;"><button class="modalBtn okbtn" style="float: right;">' +
-      options["okBtnText"] +
-      "</button></div>" +
+      (options.noOK
+        ? ""
+        : '<div style="height: 20px; padding: 10px;"><' +
+          '<button class="modalBtn okbtn" style="float: right;">' +
+          options["okBtnText"] +
+          "</button></div>") +
       "</div>" +
       "</div>"
   );
