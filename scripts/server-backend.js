@@ -39,7 +39,7 @@ function startBackendServer(port) {
 
   app.all("*", (req, res, next) => {
     req.reqId = ++reqId;
-    console.log("Starting to handle request", reqId, req.method, req.url);
+    //console.log("Starting to handle request", reqId, req.method, req.url);
     next();
   });
 
@@ -94,10 +94,14 @@ function startBackendServer(port) {
         })
         .catch((e) => {
           const response = e.response;
-          if (response.status == 404) {
-            console.log("First open of board", wid);
+          if (response) {
+            if (response.status == 404) {
+              console.log("First open of board", wid);
+            } else {
+              console.log("Error loading board", response);
+            }
           } else {
-            console.log("Error loading board", response);
+            console.log("Error accessing webdav server", e);
           }
           res.send([]);
           res.end();
@@ -226,10 +230,10 @@ function startBackendServer(port) {
 
     ws.clientId = ++connectionCount;
     currentConnections[ws.clientId] = ws;
-    console.log("New websocket client", ws.clientId);
+    //console.log("New websocket client", ws.clientId);
 
     ws.broadcast = function (message) {
-      console.log("Broadcasting", ws.clientId, clients, rooms, message);
+      //console.log("Broadcasting", ws.clientId, clients, rooms, message);
       if (ws.clientId) {
         const myRoomId = clients[this.clientId];
         if (myRoomId) {
@@ -334,14 +338,14 @@ function startBackendServer(port) {
             )
             .then((response) => {
               const payload = response.body;
-              console.log("Verified token as", payload);
+              //console.log("Verified token as", payload);
               whiteboardServerSideInfo.setWebdav(
                 payload.host,
                 payload.user,
                 payload.pass,
                 payload.path
               );
-              console.log("Webdav credentials", payload.user, payload.pass);
+              //console.log("Webdav credentials", payload.user, payload.pass);
               s_whiteboard.setWebdav(
                 whiteboardId,
                 whiteboardServerSideInfo.webdavClient,
