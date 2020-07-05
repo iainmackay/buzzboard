@@ -12,7 +12,7 @@ async function saveBoard (wid) {
 		const boardFilepath = `${wd.path}/${wid}.json`;
 		console.log (`Saving board '${wid}' to ${boardFilepath}`);
 		await wd.client.putFileContents (boardFilepath, 
-			JSON.stringify (board));
+			JSON.stringify (board, null, 2));
 };
 
 async function saveBoardIfNecessary (wid) {
