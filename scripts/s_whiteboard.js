@@ -110,6 +110,7 @@ module.exports = {
                     break;
                 }
             }
+			savedBoards [wid].sort ((x, y) => x.drawId - y.drawId);
         } else if (
             [
                 "line",
