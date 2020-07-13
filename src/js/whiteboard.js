@@ -1064,6 +1064,7 @@ const whiteboard = {
         break;
       }
     }
+	_this.drawBuffer.sort ((x, y) => x.drawId - y.drawId);
     _this.canvas.height = _this.canvas.height;
     _this.imgContainer.empty();
     _this.loadDataInSteps(_this.drawBuffer, false, function (stepData) {
