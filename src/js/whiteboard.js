@@ -6,6 +6,7 @@ import ThrottlingService from "./services/ThrottlingService";
 import ConfigService from "./services/ConfigService";
 import { fillTextMultiLine, generateUUID, escapeHTML } from "./utils";
 import html2canvas from "html2canvas";
+import {textTools, stableSort} from "../../common/wsutil.js";
 
 const RAD_TO_DEG = 180.0 / Math.PI;
 const DEG_TO_RAD = Math.PI / 180.0;
@@ -22,15 +23,6 @@ const toolset = [
   "addImgBG",
   "recSelect",
   "eraseRec",
-  "addTextBox",
-  "setTextboxText",
-  "removeTextbox",
-  "setTextboxPosition",
-  "setTextboxFontSize",
-  "setTextboxFontColor",
-];
-
-const textTools = [
   "addTextBox",
   "setTextboxText",
   "removeTextbox",
@@ -956,8 +948,10 @@ const whiteboard = {
         return false;
       });
       if (newLocalBox) {
-        //console.log("Focusing to new box");
-        textBox.find(".textContent").focus();
+        //per https://stackoverflow.com/questions/2388164/set-focus-on-div-contenteditable-element
+		setTimeout (() => {
+			textBox.find(".textContent").focus();
+		}, 0);
       }
       if (this.tool === "text") {
         textBox.addClass("active");
@@ -971,7 +965,7 @@ const whiteboard = {
   setTextboxText(txId, text) {
     $("#" + txId)
       .find(".textContent")
-      .text(text);
+      .html(text);
   },
   removeTextbox(txId) {
     $("#" + txId).remove();
@@ -1064,7 +1058,9 @@ const whiteboard = {
         break;
       }
     }
-	_this.drawBuffer.sort ((x, y) => x.drawId - y.drawId);
+	//_this.drawBuffer = stableSort (_this.drawBuffer, (x, y) => {
+	//	(x.username === y.username)?(x.drawId - y.drawId):0
+	//});
     _this.canvas.height = _this.canvas.height;
     _this.imgContainer.empty();
     _this.loadDataInSteps(_this.drawBuffer, false, function (stepData) {

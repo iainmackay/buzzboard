@@ -1,5 +1,7 @@
 //This file is for saving the whiteboard. Persisted at intervals in webdav, cached in memory.
 
+const {stableSort,textTools} = require("../common/wsutil");
+
 let savedBoards = {};
 let savedUndos = {};
 let savedWebdavs = {};
@@ -70,12 +72,14 @@ module.exports = {
             }
             if (savedBoards[wid]) {
                 for (var i = savedBoards[wid].length - 1; i >= 0; i--) {
-                    if (savedBoards[wid][i]["username"] == username) {
+                    if (savedBoards[wid][i]["username"] == username &&
+						!textTools.includes(savedBoards[wid][i]["t"])) {
                         var drawId = savedBoards[wid][i]["drawId"];
                         for (var i = savedBoards[wid].length - 1; i >= 0; i--) {
                             if (
                                 savedBoards[wid][i]["drawId"] == drawId &&
-                                savedBoards[wid][i]["username"] == username
+                                savedBoards[wid][i]["username"] == username &&
+								!textTools.includes(savedBoards[wid][i]["t"])
                             ) {
                                 savedUndos[wid].push(savedBoards[wid][i]);
                                 savedBoards[wid].splice(i, 1);
@@ -110,7 +114,9 @@ module.exports = {
                     break;
                 }
             }
-			savedBoards [wid].sort ((x, y) => x.drawId - y.drawId);
+			//savedBoards [wid] = stableSort (savedBoards [wid], (x, y) => {
+			//	(x.username === y.username)?(x.drawId - y.drawId):0
+			//});
         } else if (
             [
                 "line",

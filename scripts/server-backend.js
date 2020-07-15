@@ -32,6 +32,7 @@ function startBackendServer(port) {
     leaveRoom,
     rooms,
     clients,
+	stableSort
   } = require("../common/wsutil");
 
   var app = express();
