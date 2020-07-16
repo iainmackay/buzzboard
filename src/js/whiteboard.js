@@ -994,42 +994,51 @@ const whiteboard = {
     };
     img.src = url;
   },
-  undoWhiteboard: function (username) {
-    //Not call this directly because you will get out of sync whit others...
+  myLatestDrawIdInBuffer (username) {
     var _this = this;
+    let drawId;
     if (!username) {
       username = _this.settings.username;
     }
     for (let i = _this.drawBuffer.length - 1; i >= 0; i--) {
-      //if (_this.drawBuffer[i]["u"] == username) {
       if (
         _this.isVisible(_this.drawBuffer[i]) &&
         _this.drawBuffer[i]["u"] == username &&
         !textTools.includes(_this.drawBuffer[i]["t"])
       ) {
-        var drawId = _this.drawBuffer[i]["drawId"];
-        for (let i = _this.drawBuffer.length - 1; i >= 0; i--) {
-          if (
-            _this.drawBuffer[i]["drawId"] == drawId &&
-            _this.drawBuffer[i]["u"] == username &&
-            !textTools.includes(_this.drawBuffer[i]["t"])
-          ) {
-            _this.undoBuffer.push(_this.drawBuffer[i]);
-            //console.log ("Undoing", Object.assign ({}, _this.drawBuffer [i]));
-            _this.drawBuffer.splice(i, 1);
-          }
-        }
+        drawId = _this.drawBuffer[i]["drawId"];
         break;
       }
     }
-    if (_this.undoBuffer.length > 1000) {
-      _this.undoBuffer.splice(0, _this.undoBuffer.length - 1000);
+	return drawId;
+  },
+  undoWhiteboard: function (username, drawId) {
+    //Not call this directly because you will get out of sync whit others...
+    var _this = this;
+    if (!username) {
+      username = _this.settings.username;
     }
-    _this.canvas.height = _this.canvas.height;
-    _this.imgContainer.empty();
-    _this.loadDataInSteps(_this.drawBuffer, false, function (stepData) {
-      //Nothing to do
-    });
+    drawId = drawId || this.myLatestDrawIdInBuffer (username);
+	if (drawId) {
+      for (let i = _this.drawBuffer.length - 1; i >= 0; i--) {
+        if (
+          _this.drawBuffer[i]["drawId"] === drawId &&
+          _this.drawBuffer[i]["u"] === username &&
+          !textTools.includes(_this.drawBuffer[i]["t"])
+        ) {
+          _this.undoBuffer.push(Object.assign ({}, _this.drawBuffer [i]));
+          _this.drawBuffer.splice(i, 1);
+        }
+      }
+      if (_this.undoBuffer.length > 1000) {
+        this.undoBuffer.splice(0, _this.undoBuffer.length - 1000);
+      }
+      _this.canvas.height = _this.canvas.height;
+      _this.imgContainer.empty();
+      _this.loadDataInSteps(_this.drawBuffer, false, function (stepData) {
+        //Nothing to do
+      });
+    }
   },
   redoWhiteboard: function (username) {
     //Not call this directly because you will get out of sync whit others...
@@ -1040,15 +1049,13 @@ const whiteboard = {
     for (let i = _this.undoBuffer.length - 1; i >= 0; i--) {
       if (
         _this.isVisible(_this.undoBuffer[i]) &&
-        _this.undoBuffer[i]["u"] == username &&
-        !textTools.includes(_this.undoBuffer[i]["t"])
+        _this.undoBuffer[i]["u"] == username
       ) {
         var drawId = _this.undoBuffer[i]["drawId"];
         for (let i = _this.undoBuffer.length - 1; i >= 0; i--) {
           if (
             _this.undoBuffer[i]["drawId"] == drawId &&
-            _this.undoBuffer[i]["u"] == username &&
-            !textTools.includes(_this.undoBuffer[i]["t"])
+            _this.undoBuffer[i]["u"] == username
           ) {
             _this.drawBuffer.push(_this.undoBuffer[i]);
             //console.log ("Redoing", Object.assign ({}, _this.undoBuffer [i]));
@@ -1069,7 +1076,10 @@ const whiteboard = {
   },
   undoWhiteboardClick: function () {
     if (ReadOnlyService.readOnlyActive) return;
-    this.sendFunction({ t: "undo" });
+    this.sendFunction({
+      t: "undo",
+	  drawId: this.myLatestDrawIdInBuffer ()
+    });
     this.undoWhiteboard();
   },
   redoWhiteboardClick: function () {
@@ -1143,6 +1153,7 @@ const whiteboard = {
     var _this = this;
     var tool = content["t"];
     var data = content["d"];
+	var drawId = content["drawId"]
     var color = content["c"];
     var username = content["u"];
     var thickness = content["th"];
@@ -1250,7 +1261,7 @@ const whiteboard = {
             _this.cursorContainer.find("." + _this.uuidOfUser(username)).remove();
           }
         } else if (tool === "undo") {
-          _this.undoWhiteboard(username);
+          _this.undoWhiteboard(username, drawId);
         } else if (tool === "redo") {
           _this.redoWhiteboard(username);
         }
@@ -1397,7 +1408,7 @@ const whiteboard = {
     //Sends every draw to server
     var _this = this;
     content["wid"] = _this.settings.whiteboardId;
-    content["drawId"] = _this.drawId;
+    content["drawId"] = content ["drawId"] || _this.drawId;
     content["c"] = _this.drawcolor;
 
     var tool = content["t"];

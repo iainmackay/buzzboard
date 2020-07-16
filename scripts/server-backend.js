@@ -284,7 +284,11 @@ function startBackendServer(port) {
         if (whiteboardServerSideInfo.hasConnectedUser()) {
           ws.broadcast(composeMessage("refreshUserBadges"));
         } else {
-          infoByWhiteboard.delete(whiteboardId);
+			s_whiteboard.storeData (whiteboardId)
+			.then (() => {
+				infoByWhiteboard.delete(whiteboardId);
+				console.log ("Last client signed off from whiteboard", whiteboardId);
+			});
         }
         leaveRoom(whiteboardId, this.clientId);
       }
@@ -307,7 +311,6 @@ function startBackendServer(port) {
     handlers["joinWhiteboard"] = function (content) {
       console.log("Join of whiteboard received from", this.clientId, content);
       content = escapeAllContentStrings(content);
-      console.log("Needing to load whiteboard for first client");
       if (accessToken === "" || accessToken == content["at"]) {
         whiteboardId = content["wid"];
         let whiteboardServerSideInfo = infoByWhiteboard.get(whiteboardId);
@@ -324,6 +327,7 @@ function startBackendServer(port) {
         if (whiteboardServerSideInfo) {
           deliverConfiguration();
         } else {
+		console.log(`Needing to load whiteboard ${whiteboardId} for first client`);
           whiteboardServerSideInfo = new WhiteboardServerSideInfo();
           infoByWhiteboard.set(whiteboardId, whiteboardServerSideInfo);
           got

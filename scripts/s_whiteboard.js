@@ -48,6 +48,7 @@ module.exports = {
     handleEventsAndData: function (content) {
         var tool = content["t"]; //Tool used
         var wid = content["wid"]; //whiteboard ID
+		var drawId = content["drawId"];
  		if (!["cursor", "mouse"].includes (tool)) {
 			//console.log ("Whiteboard change event", content);
 			if (savedBoards[wid]) {
@@ -57,38 +58,34 @@ module.exports = {
         var username = content["username"];
         if (tool === "clear") {
             //Clear the whiteboard
-            delete savedBoards[wid];
-            delete savedUndos[wid];
-			delete eventCounts[wid];
-			delete lastCheckpoints[wid];
-			savedBoards [wid] = [];
-			savedUndos [wid] = [];
-			eventCounts [wid] = 0;
-			lastCheckpoints [wid] = 0;
+            //delete savedBoards[wid];
+            //delete savedUndos[wid];
+			//delete eventCounts[wid];
+			//delete lastCheckpoints[wid];
+			if (savedBoards [wid]) {
+				savedBoards [wid] = [];
+				savedUndos [wid] = [];
+				eventCounts [wid] += 1;
+			}
+			//lastCheckpoints [wid] = 0;
         } else if (tool === "undo") {
             //Undo an action
             if (!savedUndos[wid]) {
                 savedUndos[wid] = [];
             }
-            if (savedBoards[wid]) {
-                for (var i = savedBoards[wid].length - 1; i >= 0; i--) {
-                    if (savedBoards[wid][i]["username"] == username &&
-						!textTools.includes(savedBoards[wid][i]["t"])) {
-                        var drawId = savedBoards[wid][i]["drawId"];
-                        for (var i = savedBoards[wid].length - 1; i >= 0; i--) {
-                            if (
-                                savedBoards[wid][i]["drawId"] == drawId &&
-                                savedBoards[wid][i]["username"] == username &&
-								!textTools.includes(savedBoards[wid][i]["t"])
-                            ) {
-                                savedUndos[wid].push(savedBoards[wid][i]);
-                                savedBoards[wid].splice(i, 1);
-                            }
-                        }
-                        break;
-                    }
-                }
-                if (savedUndos[wid].length > 1000) {
+            if (savedBoards[wid] && drawId) {
+				for (var i = savedBoards[wid].length - 1; i >= 0; i--) {
+					if (
+						savedBoards[wid][i]["drawId"] == drawId &&
+						savedBoards[wid][i]["username"] == username &&
+						!textTools.includes(savedBoards[wid][i]["t"])
+					) {
+						savedUndos[wid].push(savedBoards[wid][i]);
+						savedBoards[wid].splice(i, 1);
+					}
+				}
+				eventCounts [wid] += 1;
+                 if (savedUndos[wid].length > 1000) {
                     savedUndos[wid].splice(0, savedUndos[wid].length - 1000);
                 }
             }
@@ -111,6 +108,7 @@ module.exports = {
                             savedUndos[wid].splice(i, 1);
                         }
                     }
+					eventCounts [wid] += 1;
                     break;
                 }
             }
@@ -173,6 +171,9 @@ module.exports = {
 			return savedBoards [wid];
 		}
     },
+	storeData: async function (wid) {
+		return saveBoardIfNecessary (wid);
+	},
 	// Delete any cached version of a board, prior to deleting board folder
 	delete: function (wid) {
 		delete savedBoards [wid];
